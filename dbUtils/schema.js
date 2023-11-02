@@ -32,17 +32,10 @@ const commentSchema = new Schema({
 });
 
 const followingSchema = new Schema({
-  userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  userName: { type: String, required: true },
-  followingID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  followingName: { type: String, required: true },
-});
-
-const followerSchema = new Schema({
-  userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  userName: { type: String, required: true },
   followerID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
   followerName: { type: String, required: true },
+  followingID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+  followingName: { type: String, required: true },
 });
 
 const likeSchema = new Schema({
@@ -55,7 +48,6 @@ const User = mongoose.model('User', userSchema);
 const Post = mongoose.model('Post', postSchema);
 const Comment = mongoose.model('Comment', commentSchema);
 const Following = mongoose.model('Following', followingSchema);
-const Follower = mongoose.model('Follower', followerSchema);
 const Like = mongoose.model('Like', likeSchema);
 
 module.exports = {
@@ -63,6 +55,5 @@ module.exports = {
   Post,
   Comment,
   Following,
-  Follower,
   Like,
 };
