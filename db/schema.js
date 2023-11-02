@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('./db');
 
 const { Schema } = mongoose;
 
@@ -15,7 +15,7 @@ const userSchema = new Schema({
 
 const postSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  userName: { type: String, unique: true, required: true },
+  userName: { type: String, required: true },
   imgPath: { type: String, required: true },
   description: { type: String, default: '' },
   likeCount: { type: Number, default: 0 },
@@ -25,30 +25,30 @@ const postSchema = new Schema({
 
 const commentSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  userName: { type: String, unique: true, required: true },
-  postID: { type: String, unique: true, required: true },
+  userName: { type: String, required: true },
+  postID: { type: Schema.Types.ObjectId, required: true, ref: 'Post' },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
 });
 
 const followingSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  userName: { type: String, unique: true, required: true },
-  followingID: { type: String, unique: true, required: true },
-  followingName: { type: String, unique: true, required: true },
+  userName: { type: String, required: true },
+  followingID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+  followingName: { type: String, required: true },
 });
 
 const followerSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  userName: { type: String, unique: true, required: true },
-  followerID: { type: String, unique: true, required: true },
-  followerName: { type: String, unique: true, required: true },
+  userName: { type: String, required: true },
+  followerID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+  followerName: { type: String, required: true },
 });
 
 const likeSchema = new Schema({
   postID: { type: Schema.Types.ObjectId, required: true, ref: 'Post' },
   userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  userName: { type: String, unique: true, required: true },
+  userName: { type: String, required: true },
 });
 
 const User = mongoose.model('User', userSchema);
