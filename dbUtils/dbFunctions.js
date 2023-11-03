@@ -50,6 +50,15 @@ async function deleteOneObjectById(modelName, id) {
   }
 }
 
+async function deleteManyObjectsByQuery(modelName, query) {
+  try {
+    return await modelMapper.get(modelName).deleteMany(query);
+  } catch (err) {
+    errorPrinter('deleting many by query', modelName, err);
+    throw err;
+  }
+}
+
 async function getAllObjects(modelName) {
   try {
     return await modelMapper.get(modelName).find();
@@ -145,4 +154,5 @@ module.exports = {
   decreaseOneFieldById,
   checkOneObjectExistById,
   checkOneObjectExistByQuery,
+  deleteManyObjectsByQuery,
 };
