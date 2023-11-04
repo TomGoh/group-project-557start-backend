@@ -10,6 +10,7 @@ const logger = winston.createLogger({
 });
 
 function methodLogging(methodName, req) {
+	logger.log('info', '-----------------------------------');
 	logger.log('info', methodName + ' ' + req.originalUrl);
 	logger.log('info', 'req.body: ' + JSON.stringify(req.body));
 	logger.log('info', `req query params: ${JSON.stringify(req.query)}`);

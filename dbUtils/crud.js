@@ -4,11 +4,16 @@ const {
   deleteOneObjectById,
   increaseOneFieldById,
   checkOneObjectExistByQuery, checkOneObjectExistById, getManyObjectsByQuery, deleteManyObjectsByQuery,
+  getOneObjectByQuery,
 } = require('./dbFunctions');
 const { ObjectId } = require('mongodb');
 
 async function createOneUser(user) {
   return insertOneObject('user', user);
+}
+
+async function createOneLogin(login) {
+  return insertOneObject('login', login);
 }
 
 async function createOnePost(post) {
@@ -126,6 +131,14 @@ async function getAllObjects(modelName) {
   return getManyObjectsByQuery(modelName, {});
 }
 
+async function userLogin(email, password) {
+  return getOneObjectByQuery('login', { email: email, password: password });
+}
+
+async function userSignUp(email, password) {
+  return insertOneObject('login', { email: email, password: password });
+}
+
 module.exports = {
   createOneUser,
   createOnePost,
@@ -142,4 +155,8 @@ module.exports = {
   deleteOneUserById,
   deleteOneCommentById,
   checkOneObjectExistById,
+  getOneObjectByQuery,
+  createOneLogin,
+  userLogin,
+  userSignUp,
 };

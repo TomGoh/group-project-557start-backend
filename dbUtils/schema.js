@@ -2,10 +2,14 @@ const mongoose = require('./db');
 
 const { Schema } = mongoose;
 
+const loginSchema = new Schema({
+  email: { type: String, required: true },
+  password: { type: String, required: true },
+});
+
 const userSchema = new Schema({
   userName: { type: String, unique: true, required: true },
   email: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
   userMotto: { type: String, default: 'No motto yet' },
   userAvatar: { type: String, default: 'https://avatars.githubusercontent.com/u/97165289' },
   followerCount: { type: Number, default: 0 },
@@ -49,6 +53,7 @@ const Post = mongoose.model('Post', postSchema);
 const Comment = mongoose.model('Comment', commentSchema);
 const Following = mongoose.model('Following', followingSchema);
 const Like = mongoose.model('Like', likeSchema);
+const Login = mongoose.model('Login', loginSchema);
 
 module.exports = {
   User,
@@ -56,4 +61,5 @@ module.exports = {
   Comment,
   Following,
   Like,
+  Login,
 };
