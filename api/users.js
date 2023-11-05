@@ -47,4 +47,15 @@ userRouter.delete('/:id', async (req, res) => {
 	}
 });
 
+userRouter.patch('/:id', async (req, res) => {
+	methodLogging('PATCH', req);
+	try {
+		const result = await dbLib.updateOneUserMotto(req.params.id, req.body.userMotto);
+		return res.json(result);
+	} catch (err) {
+		logger.error(err.toString());
+		return res.json({ error: err.toString() });
+	}
+});
+
 module.exports = { userRouter };

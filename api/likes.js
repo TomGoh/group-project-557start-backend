@@ -75,6 +75,11 @@ likeRouter.post('/', async (req, res) => {
 		if (likeExist.length > 0) {
 			return res.json({ error: 'already liked' });
 		}
+		if (like.userName === undefined) {
+			const user = await getObjectsByQuery('user', { _id: like.userID });
+			like.userName = user[0].userName;
+		}
+		console.log(like);
 		const result = await dbLib.createOneLike(like);
 		return res.json(result);
 	} catch (err) {

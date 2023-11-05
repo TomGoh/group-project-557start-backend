@@ -53,6 +53,12 @@ followingRouter.post('/', async (req, res) => {
 		if (followingExist.length > 0) {
 			return res.json({ error: 'already following' });
 		}
+		if (!following.followingName || !following.followerName) {
+			const followingUser = await getObjectsByQuery('user', { _id: following.followingID });
+			const followerUser = await getObjectsByQuery('user', { _id: following.followerID });
+			following.followingName = followingUser[0].userName;
+			following.followerName = followerUser[0].userName;
+		}
 		const result = await dbLib.createOneFollowing(following);
 		return res.json(result);
 	} catch (err) {

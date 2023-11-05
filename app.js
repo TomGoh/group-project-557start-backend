@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { urlencoded, json } = require('express');
 const { userRouter } = require('./api/users');
 const { postRouter } = require('./api/posts');
 const { followingRouter } = require('./api/followings');
@@ -7,13 +8,12 @@ const { likeRouter } = require('./api/likes');
 const { commentRouter } = require('./api/comments');
 const { loginRouter } = require('./api/login');
 const { registerRouter } = require('./api/register');
-const { urlencoded, json } = require('express');
 
 const app = express();
 const port = 8888;
 app.use(cors());
 app.use(urlencoded({
-	extended: false
+	extended: false,
 }));
 app.use(json());
 

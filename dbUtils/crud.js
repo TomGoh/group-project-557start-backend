@@ -6,6 +6,7 @@ const {
   checkOneObjectExistByQuery, checkOneObjectExistById,
   getManyObjectsByQuery, deleteManyObjectsByQuery,
   getOneObjectByQuery,
+  updateOneFieldById,
 } = require('./dbFunctions');
 
 async function createOneUser(user) {
@@ -139,6 +140,14 @@ async function userSignUp(email, password) {
   return insertOneObject('login', { email, password });
 }
 
+async function updateOneUserMotto(userId, motto) {
+  return updateOneFieldById('user', userId, 'userMotto', motto);
+}
+
+async function updateOnePostLikeCount(postId, newLikeCount) {
+  return updateOneFieldById('post', postId, 'likeCount', newLikeCount);
+}
+
 module.exports = {
   createOneUser,
   createOnePost,
@@ -159,4 +168,6 @@ module.exports = {
   createOneLogin,
   userLogin,
   userSignUp,
+  updateOneUserMotto,
+  updateOnePostLikeCount,
 };
