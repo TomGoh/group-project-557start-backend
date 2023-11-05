@@ -8,6 +8,7 @@ const {
   createOneComment,
   createOneFollowing,
   createOneLike,
+  createOneLogin,
 } = require('./crud');
 const { getAllObjects } = require('./dbFunctions');
 
@@ -20,6 +21,7 @@ async function encryptPassword(password) {
 
 async function generateUsers(userCount) {
   const userInfor = [];
+  const userLoginInfor = [];
   const hashedPasswords = [];
   for (let i = 0; i < userCount; i += 1) {
     const simplePassword = faker.internet.password();
@@ -28,16 +30,20 @@ async function generateUsers(userCount) {
       userName: faker.internet.userName(),
       userMotto: faker.lorem.sentence(),
       userAvatar: faker.image.avatar(),
-      password: simplePassword,
       email: faker.internet.email(),
     };
+    const userLogin = {
+      email: user.email,
+      password: simplePassword,
+    };
     userInfor.push(user);
+    userLoginInfor.push(userLogin);
   }
   const hashedPasswordsResult = await Promise.all(hashedPasswords);
   for (let i = 0; i < userInfor.length; i += 1) {
-    userInfor[i].password = hashedPasswordsResult[i];
+    userLoginInfor[i].password = hashedPasswordsResult[i];
   }
-  return userInfor;
+  return { userList: userInfor, userLoginList: userLoginInfor };
 }
 
 function generatePosts(maxPostCount, users) {
@@ -105,8 +111,9 @@ async function populateData() {
   const maxLikeCountPerPost = 10;
   const maxFollowingCountPerUser = 20;
 
-  const userList = await generateUsers(userCount);
+  const { userList, userLoginList } = await generateUsers(userCount);
   await Promise.all(userList.map(async (user) => createOneUser(user)));
+  await Promise.all(userLoginList.map(async (userLogin) => createOneLogin(userLogin)));
   process.stdout.write('User creation done\n');
   const users = await getAllObjects('user');
   const postList = generatePosts(maxPostCountPerUser, users);
