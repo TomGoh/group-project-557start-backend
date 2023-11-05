@@ -1,9 +1,10 @@
 const express = require('express');
+
 const likeRouter = express.Router();
 const dbLib = require('../dbUtils/crud');
 const { methodLogging, logger } = require('../utils/logger');
-const { getObjectsByQuery } = require('../dbUtils/crud')
-const { getManyObjectsByQuery } = require('../dbUtils/dbFunctions')
+const { getObjectsByQuery } = require('../dbUtils/crud');
+const { getManyObjectsByQuery } = require('../dbUtils/dbFunctions');
 
 likeRouter.get('/', async (req, res) => {
 	methodLogging('GET', req);
@@ -62,7 +63,7 @@ likeRouter.delete('/', async (req, res) => {
 		}
 		return res.json({ error: 'missing query params' });
 	} catch (err) {
-		res.json({ error: err.toString() });
+		return res.json({ error: err.toString() });
 	}
 });
 
@@ -75,9 +76,9 @@ likeRouter.post('/', async (req, res) => {
 			return res.json({ error: 'already liked' });
 		}
 		const result = await dbLib.createOneLike(like);
-		res.json(result);
+		return res.json(result);
 	} catch (err) {
-		res.json({ error: err.toString() });
+		return res.json({ error: err.toString() });
 	}
 });
 

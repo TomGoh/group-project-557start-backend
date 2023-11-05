@@ -1,9 +1,10 @@
 const express = require('express');
+
 const commentRouter = express.Router();
 const dbLib = require('../dbUtils/crud');
 const { methodLogging, logger } = require('../utils/logger');
-const { getObjectsByQuery } = require('../dbUtils/crud')
-const { getManyObjectsByQuery } = require('../dbUtils/dbFunctions')
+const { getObjectsByQuery } = require('../dbUtils/crud');
+const { getManyObjectsByQuery } = require('../dbUtils/dbFunctions');
 
 commentRouter.get('/', async (req, res) => {
 	methodLogging('GET', req);

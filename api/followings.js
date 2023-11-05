@@ -1,9 +1,10 @@
 const express = require('express');
+
 const followingRouter = express.Router();
 const dbLib = require('../dbUtils/crud');
 const { methodLogging, logger } = require('../utils/logger');
-const { getObjectsByQuery } = require('../dbUtils/crud')
-const { getManyObjectsByQuery } = require('../dbUtils/dbFunctions')
+const { getObjectsByQuery } = require('../dbUtils/crud');
+const { getManyObjectsByQuery } = require('../dbUtils/dbFunctions');
 
 followingRouter.get('/', async (req, res) => {
 	methodLogging('GET', req);
@@ -45,7 +46,7 @@ followingRouter.post('/', async (req, res) => {
 	methodLogging('POST', req);
 	try {
 		const following = req.body;
-		if(following.followerID === following.followingID) {
+		if (following.followerID === following.followingID) {
 			return res.json({ error: 'cannot follow yourself' });
 		}
 		const followingExist = await getObjectsByQuery('following', { followerID: following.followerID, followingID: following.followingID });
@@ -53,9 +54,9 @@ followingRouter.post('/', async (req, res) => {
 			return res.json({ error: 'already following' });
 		}
 		const result = await dbLib.createOneFollowing(following);
-		res.json(result);
+		return res.json(result);
 	} catch (err) {
-		res.json({ error: err.toString() });
+		return res.json({ error: err.toString() });
 	}
 });
 
@@ -67,8 +68,8 @@ followingRouter.delete('/', async (req, res) => {
 		if (!followerid || !followingid) {
 			return res.json({ error: 'followerID and followingID are required' });
 		}
-		const result = await dbLib.deleteOneFollowingByFollowerIDAndFollowingID(followingid, followerid);
-		console.log(result);
+		const result = await dbLib
+			.deleteOneFollowingByFollowerIDAndFollowingID(followingid, followerid);
 		return res.json(result);
 	} catch (err) {
 		logger.error(err.toString());

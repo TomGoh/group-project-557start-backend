@@ -12,5 +12,8 @@
       "sourceType": "module"
   },
   "rules": {
+    "no-tabs": "off",
+    "no-underscore-dangle": "off",
+    "indent": "off"
   }
 }

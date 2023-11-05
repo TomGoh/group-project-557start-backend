@@ -4,7 +4,7 @@ function generateToken(user) {
 	const token = jwt.sign(
 		{ id: user._id },
 		process.env.JWT_SECRET,
-		{ expiresIn: '6h' }
+		{ expiresIn: '6h' },
 	);
 	return token;
 }

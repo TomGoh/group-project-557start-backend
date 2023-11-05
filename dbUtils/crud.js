@@ -3,10 +3,10 @@ const {
   getOneObjectById, insertOneObject,
   deleteOneObjectById,
   increaseOneFieldById,
-  checkOneObjectExistByQuery, checkOneObjectExistById, getManyObjectsByQuery, deleteManyObjectsByQuery,
+  checkOneObjectExistByQuery, checkOneObjectExistById,
+  getManyObjectsByQuery, deleteManyObjectsByQuery,
   getOneObjectByQuery,
 } = require('./dbFunctions');
-const { ObjectId } = require('mongodb');
 
 async function createOneUser(user) {
   return insertOneObject('user', user);
@@ -19,7 +19,7 @@ async function createOneLogin(login) {
 async function createOnePost(post) {
   const postResult = await insertOneObject('post', post);
   const postCountResult = await increaseOneFieldById('user', post.userID, 'postCount');
-  if(postResult && postCountResult) {
+  if (postResult && postCountResult) {
     return postResult;
   }
   return postResult;
@@ -51,7 +51,7 @@ async function deleteOneUserById(userId) {
   const followingResult = await deleteManyObjectsByQuery('following', { $or: [{ followerID: userId }, { followingID: userId }] });
   const likeResult = await deleteManyObjectsByQuery('like', { userID: userId });
   const postResult = await deleteManyObjectsByQuery('post', { userID: userId });
-  const userResult = await deleteOneObjectById('user',  userId);
+  const userResult = await deleteOneObjectById('user', userId);
   return user && userResult && postResult && commentResult && followingResult && likeResult;
 }
 
@@ -64,24 +64,24 @@ async function deleteOnePostById(postID) {
 
 async function deleteOneFollowingByFollowerIDAndFollowingID(followingId, followerId) {
   const result = await checkOneObjectExistByQuery('following', { followingID: followingId, followerID: followerId });
-  if (result!=null) {
+  if (result != null) {
     const followingRemoval = await deleteOneObjectById('following', result._id);
     const followerCountResult = await increaseOneFieldById('user', followerId, 'followerCount', -1);
     const followingCountResult = await increaseOneFieldById('user', followingId, 'followingCount', -1);
-    if(followingRemoval && followerCountResult && followingCountResult) {
+    if (followingRemoval && followerCountResult && followingCountResult) {
       return followingRemoval;
     }
   }
   return "following doesn't exist";
 }
 
-async function deleteOneFollowingById(id){
+async function deleteOneFollowingById(id) {
   const result = await checkOneObjectExistByQuery('following', { _id: id });
-  if (result!=null) {
+  if (result != null) {
     const followingRemoval = await deleteOneObjectById('following', result._id);
     const followerCountResult = await increaseOneFieldById('user', result.followerID, 'followerCount', -1);
     const followingCountResult = await increaseOneFieldById('user', result.followingID, 'followingCount', -1);
-    if(followingRemoval && followerCountResult && followingCountResult) {
+    if (followingRemoval && followerCountResult && followingCountResult) {
       return followingRemoval;
     }
   }
@@ -90,10 +90,10 @@ async function deleteOneFollowingById(id){
 
 async function deleteOneLikeById(likeId) {
   const result = await checkOneObjectExistByQuery('like', { _id: likeId });
-  if (result!=null) {
+  if (result != null) {
     const likeRemoval = await deleteOneObjectById('like', result._id);
     const likeCountResult = await increaseOneFieldById('post', result.postID, 'likeCount', -1);
-    if(likeRemoval && likeCountResult) {
+    if (likeRemoval && likeCountResult) {
       return likeRemoval;
     }
   }
@@ -102,10 +102,10 @@ async function deleteOneLikeById(likeId) {
 
 async function deleteOneLikeByUserIdAndPostId(userId, postId) {
   const result = await checkOneObjectExistByQuery('like', { userID: userId, postID: postId });
-  if (result!=null) {
+  if (result != null) {
     const likeRemoval = await deleteOneObjectById('like', result._id);
     const likeCountResult = await increaseOneFieldById('post', postId, 'likeCount', -1);
-    if(likeRemoval && likeCountResult) {
+    if (likeRemoval && likeCountResult) {
       return likeRemoval;
     }
   }
@@ -114,9 +114,9 @@ async function deleteOneLikeByUserIdAndPostId(userId, postId) {
 
 async function deleteOneCommentById(commentId) {
   const result = await checkOneObjectExistByQuery('comment', { _id: commentId });
-  if (result!=null) {
+  if (result != null) {
     const commentRemoval = await deleteOneObjectById('comment', result._id);
-    if(commentRemoval) {
+    if (commentRemoval) {
       return commentRemoval;
     }
   }
@@ -132,11 +132,11 @@ async function getAllObjects(modelName) {
 }
 
 async function userLogin(email, password) {
-  return getOneObjectByQuery('login', { email: email, password: password });
+  return getOneObjectByQuery('login', { email, password });
 }
 
 async function userSignUp(email, password) {
-  return insertOneObject('login', { email: email, password: password });
+  return insertOneObject('login', { email, password });
 }
 
 module.exports = {
