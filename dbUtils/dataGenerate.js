@@ -166,5 +166,5 @@ async function main() {
 }
 
 main().then(() => {
-  process.exit();
+  process.exit(0);
 });
