@@ -8,6 +8,7 @@ const { likeRouter } = require('./api/likes');
 const { commentRouter } = require('./api/comments');
 const { loginRouter } = require('./api/login');
 const { registerRouter } = require('./api/register');
+const { blobRouter } = require('./api/blob');
 
 const app = express();
 const port = 8888;
@@ -28,5 +29,6 @@ app.use('/api/likes', likeRouter);
 app.use('/api/comments', commentRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/signup', registerRouter);
+app.use('/api/blob', blobRouter);
 
 module.exports = app;
