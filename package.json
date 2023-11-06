@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/TomGoh/group-project-557start-backend#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.441.0",
+    "@aws-sdk/lib-storage": "^3.300.0",
     "@faker-js/faker": "^8.2.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
