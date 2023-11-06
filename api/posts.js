@@ -53,10 +53,8 @@ postRouter.post('/', async (req, res) => {
   methodLogging('POST', req);
   try {
     const post = req.body;
-    console.log(post);
-    console.log(res.image);
-    // const result = await dbLib.createOnePost(post);
-    // res.json(result);
+    const result = await dbLib.createOnePost(post);
+    res.json(result);
   } catch (err) {
     res.json({ error: err.toString() });
   }
