@@ -7,6 +7,7 @@ const { upload } = require('../dbUtils/s3Operations');
 blobRouter.post('/', upload.single('file'), async (req, res) => {
   methodLogging('POST', req);
   if (!req.file) {
+    res.status(400);
     return res.json({ error: 'No file uploaded' });
   }
   const { file } = req;

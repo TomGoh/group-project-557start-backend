@@ -141,6 +141,17 @@ async function checkOneObjectExistByQuery(modelName, query) {
   }
 }
 
+async function getOneRandomObject(modelName) {
+  try {
+    const count = await modelMapper.get(modelName).countDocuments();
+    const random = Math.floor(Math.random() * count);
+    return await modelMapper.get(modelName).findOne().skip(random);
+  } catch (err) {
+    errorPrinter('getting one random object', modelName, err);
+    throw new Error(err);
+  }
+}
+
 module.exports = {
   getOneObjectById,
   insertOneObject,
@@ -156,4 +167,5 @@ module.exports = {
   checkOneObjectExistById,
   checkOneObjectExistByQuery,
   deleteManyObjectsByQuery,
+  getOneRandomObject,
 };

@@ -7,6 +7,7 @@ const {
   getManyObjectsByQuery, deleteManyObjectsByQuery,
   getOneObjectByQuery,
   updateOneFieldById,
+  getOneRandomObject,
 } = require('./dbFunctions');
 
 async function createOneUser(user) {
@@ -148,6 +149,14 @@ async function updateOnePostLikeCount(postId, newLikeCount) {
   return updateOneFieldById('post', postId, 'likeCount', newLikeCount);
 }
 
+async function getOneRandomUser() {
+  return getOneRandomObject('user');
+}
+
+async function getOneRandomPost() {
+  return getOneRandomObject('post');
+}
+
 module.exports = {
   createOneUser,
   createOnePost,
@@ -170,4 +179,6 @@ module.exports = {
   userSignUp,
   updateOneUserMotto,
   updateOnePostLikeCount,
+  getOneRandomUser,
+  getOneRandomPost,
 };

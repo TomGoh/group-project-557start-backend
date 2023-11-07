@@ -46,6 +46,10 @@ commentRouter.post('/', async (req, res) => {
 	methodLogging('POST', req);
 	try {
 		const comment = req.body;
+		if (comment.userName === undefined) {
+			const user = await getObjectsByQuery('user', { _id: comment.userID });
+			comment.userName = user[0].userName;
+		}
 		const result = await dbLib.createOneComment(comment);
 		res.json(result);
 	} catch (err) {

@@ -63,10 +63,14 @@ const upload = multer({
   storage: S3Storage,
   fileFilter(req, file, cb) {
     if (!file.originalname.match(/\.(png|jpg|jpeg|webp|mp4)$/)) {
-      return cb(new Error('Please upload a Image or Video'));
+      return cb({
+        message: 'Unsupported File Type',
+        status: 415,
+      }, false);
     }
-    return cb(undefined, true);
+    return cb(null, true);
   },
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 module.exports = {

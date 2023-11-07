@@ -15,8 +15,9 @@ const port = 8888;
 app.use(cors());
 app.use(urlencoded({
 	extended: false,
+	limit: '10mb',
 }));
-app.use(json());
+app.use(json({ limit: '10mb' }));
 
 app.listen(port, () => {
 	process.stdout.write(`Server listening at http://localhost:${port}`);
