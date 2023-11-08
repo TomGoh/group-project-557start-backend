@@ -170,6 +170,14 @@ async function getOneRandomPost() {
   return getOneRandomObject('post');
 }
 
+async function checkEmailExistence(email) {
+  return checkOneObjectExistByQuery('user', { email });
+}
+
+async function checkUsernameExistence(username) {
+  return checkOneObjectExistByQuery('user', { userName: username });
+}
+
 module.exports = {
   createOneUser,
   createOnePost,
@@ -194,4 +202,6 @@ module.exports = {
   updateOnePostLikeCount,
   getOneRandomUser,
   getOneRandomPost,
+  checkEmailExistence,
+  checkUsernameExistence,
 };

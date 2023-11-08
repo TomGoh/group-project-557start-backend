@@ -21,7 +21,7 @@ const postSchema = new Schema({
   userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
   userName: { type: String, required: true },
   imgPath: { type: String, required: true },
-  description: { type: String, default: '' },
+  description: { type: String, default: 'No description' },
   likeCount: { type: Number, default: 0 },
   commentCount: { type: Number, default: 0 },
   timestamp: { type: Date, default: Date.now },

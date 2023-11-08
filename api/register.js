@@ -25,4 +25,37 @@ registerRouter.post('/', async (req, res) => {
   }
 });
 
+registerRouter.get('/', async (req, res) => {
+  methodLogging('GET', req);
+  try {
+    const { email, username } = req.query;
+    if (email && username) {
+      const emailExistence = await dbLib.checkEmailExistence(email);
+      const usernameExistence = await dbLib.checkUsernameExistence(username);
+      if (emailExistence) {
+        return res.json({ error: 'email already exists' });
+      }
+      if (usernameExistence) {
+        return res.json({ error: 'username already exists' });
+      }
+    }
+    if (email) {
+      const emailExistence = await dbLib.checkEmailExistence(email);
+      if (emailExistence) {
+        return res.json({ error: 'email already exists' });
+      }
+    }
+    if (username) {
+      const usernameExistence = await dbLib.checkUsernameExistence(username);
+      if (usernameExistence) {
+        return res.json({ error: 'username already exists' });
+      }
+    }
+    return res.json({ success: 'email and username are available' });
+  } catch (err) {
+    logger.error(err.toString());
+    return res.json({ error: err.toString() });
+  }
+});
+
 module.exports = { registerRouter };
