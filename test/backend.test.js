@@ -389,9 +389,340 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(app).delete(`/api/likes/${like._id}`);
       const [newPost] = (await dbLib.getObjectsByQuery('post', { _id: post._id }));
       expect(response.statusCode).toBe(200);
-      console.log(response.body);
       expect(response.body.deletedCount).toBe(1);
       expect(newPost.likeCount).toBe(oldPost.likeCount);
+    });
+  });
+
+  describe('User Endpoint Tests', () => {
+    let randomUser = null;
+    beforeAll(async () => {
+      randomUser = await dbLib.getOneRandomUser();
+    });
+
+    test('get all users', async () => {
+      const response = await request(app).get('/api/users');
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('userName');
+      const [selectedUser] = response.body
+        .filter((user) => user._id.toString() === randomUser._id.toString());
+      expect(selectedUser._id.toString()).toEqual(randomUser._id.toString());
+    });
+
+    test('get user by id', async () => {
+      const response = await request(app).get(`/api/users/${randomUser._id}`);
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]._id.toString()).toEqual(randomUser._id.toString());
+    });
+
+    test('get user by userName', async () => {
+      const response = await request(app).get(`/api/users/?userName=${randomUser.userName}`);
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+    });
+
+    test('get user by userName Like', async () => {
+      const response = await request(app).get(`/api/users/?userNameLike=${randomUser.userName}`);
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      response.body.forEach((user) => {
+        expect(user.userName.startsWith(randomUser.userName)).toBe(true);
+      });
+    });
+
+    test('post a user', async () => {
+      const response = await request(app)
+        .post('/api/users')
+        .send({
+          userName: faker.internet.userName(),
+          userMotto: faker.lorem.sentence(),
+          userAvatar: faker.image.avatar(),
+          email: faker.internet.email(),
+        });
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toHaveProperty('userName');
+      expect(response.body).toHaveProperty('userMotto');
+      expect(response.body).toHaveProperty('userAvatar');
+      expect(response.body).toHaveProperty('email');
+      expect(response.body.followingCount).toEqual(0);
+      expect(response.body.followerCount).toEqual(0);
+      expect(response.body.postCount).toEqual(0);
+    });
+
+    test('delete a user by id', async () => {
+      const userName = faker.internet.userName();
+      await request(app)
+        .post('/api/users')
+        .send({
+          userName,
+          userMotto: faker.lorem.sentence(),
+          userAvatar: faker.image.avatar(),
+          email: faker.internet.email(),
+        });
+      const newUser = await dbLib.getObjectsByQuery('user', { userName });
+      const response = await request(app).delete(`/api/users/${newUser[0]._id}`);
+      expect(response.statusCode).toBe(200);
+      const qUsers = await dbLib.getObjectsByQuery('user', { _id: newUser[0]._id });
+      expect(qUsers.length).toBe(0);
+    });
+
+    test('patch a user by id', async () => {
+      const userName = faker.internet.userName();
+      await request(app)
+        .post('/api/users')
+        .send({
+          userName,
+          userMotto: faker.lorem.sentence(),
+          userAvatar: faker.image.avatar(),
+          email: faker.internet.email(),
+        });
+      const newUser = await dbLib.getObjectsByQuery('user', { userName });
+      const newMotto = faker.lorem.sentence();
+      const response = await request(app)
+        .patch(`/api/users/${newUser[0]._id}`)
+        .send({ userMotto: newMotto });
+      expect(response.statusCode).toBe(200);
+      const qUsers = await dbLib.getObjectsByQuery('user', { _id: newUser[0]._id });
+      expect(qUsers[0].userMotto).toEqual(newMotto);
+    });
+  });
+
+  describe('Following Endpoint Tests', () => {
+    let randomUser1 = null;
+    let randomUser2 = null;
+    let randomUser3 = null;
+    beforeAll(async () => {
+      const userName1 = faker.internet.userName();
+      const userName2 = faker.internet.userName();
+      const userName3 = faker.internet.userName();
+      await request(app)
+        .post('/api/users')
+        .send({
+          userName: userName1,
+          userMotto: faker.lorem.sentence(),
+          userAvatar: faker.image.avatar(),
+          email: faker.internet.email(),
+        });
+      await request(app)
+        .post('/api/users')
+        .send({
+          userName: userName2,
+          userMotto: faker.lorem.sentence(),
+          userAvatar: faker.image.avatar(),
+          email: faker.internet.email(),
+        });
+      await request(app)
+        .post('/api/users')
+        .send({
+          userName: userName3,
+          userMotto: faker.lorem.sentence(),
+          userAvatar: faker.image.avatar(),
+          email: faker.internet.email(),
+        });
+      [randomUser1] = await dbLib.getObjectsByQuery('user', { userName: userName1 });
+      [randomUser2] = await dbLib.getObjectsByQuery('user', { userName: userName2 });
+      [randomUser3] = await dbLib.getObjectsByQuery('user', { userName: userName3 });
+    });
+
+    test('get all followings', async () => {
+      const response = await request(app).get('/api/followings');
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+    });
+
+    test('get following by id', async () => {
+      await request(app).post('/api/followings').send({
+        followerID: randomUser1._id,
+        followerName: randomUser1.userName,
+        followingID: randomUser2._id,
+        followingName: randomUser2.userName,
+      });
+      const [newFollowing] = await dbLib.getObjectsByQuery('following', {
+        followerID: randomUser1._id,
+        followingID: randomUser2._id,
+      });
+      const response = await request(app).get(`/api/followings/${newFollowing._id}`);
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      const filteredFollowing = response.body
+        .filter((following) => following._id.toString() === newFollowing._id.toString());
+      expect(filteredFollowing.length).toBe(1);
+      await dbLib.deleteOneFollowingById(newFollowing._id);
+    });
+
+    test('get followings by followerID and followingID', async () => {
+      await request(app).post('/api/followings').send({
+        followerID: randomUser1._id,
+        followerName: randomUser1.userName,
+        followingID: randomUser2._id,
+        followingName: randomUser2.userName,
+      });
+      const [newFollowing] = await dbLib.getObjectsByQuery('following', {
+        followerID: randomUser1._id,
+        followingID: randomUser2._id,
+      });
+      const response = await request(app).get(`/api/followings/?followerID=${randomUser1._id}&followingID=${randomUser2._id}`);
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      const filteredFollowing = response.body
+        .filter((following) => following._id.toString() === newFollowing._id.toString());
+      expect(filteredFollowing.length).toBe(1);
+      await dbLib.deleteOneFollowingById(newFollowing._id);
+    });
+
+    test('get followings by followerID', async () => {
+      await request(app).post('/api/followings').send({
+        followerID: randomUser1._id,
+        followerName: randomUser1.userName,
+        followingID: randomUser2._id,
+        followingName: randomUser2.userName,
+      });
+      const [newFollowing] = await dbLib.getObjectsByQuery('following', {
+        followerID: randomUser1._id,
+        followingID: randomUser2._id,
+      });
+      const response = await request(app).get(`/api/followings/?followerID=${randomUser1._id}`);
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      const filteredFollowing = response.body
+        .filter((following) => following._id.toString() === newFollowing._id.toString());
+      expect(filteredFollowing.length).toBe(1);
+      await dbLib.deleteOneFollowingById(newFollowing._id);
+    });
+
+    test('get followings by followingID', async () => {
+      await request(app).post('/api/followings').send({
+        followerID: randomUser1._id,
+        followingID: randomUser2._id,
+      });
+      const [newFollowing] = await dbLib.getObjectsByQuery('following', {
+        followerID: randomUser1._id,
+        followingID: randomUser2._id,
+      });
+      const response = await request(app).get(`/api/followings/?followingID=${randomUser2._id}`);
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      const filteredFollowing = response.body
+        .filter((following) => following._id.toString() === newFollowing._id.toString());
+      expect(filteredFollowing.length).toBe(1);
+      await dbLib.deleteOneFollowingById(newFollowing._id);
+    });
+
+    test('delete a following by followingID and followerID', async () => {
+      await request(app).post('/api/followings').send({
+        followerID: randomUser1._id,
+        followingID: randomUser2._id,
+      });
+      const [newFollowing] = await dbLib.getObjectsByQuery('following', {
+        followerID: randomUser1._id,
+        followingID: randomUser2._id,
+      });
+      const response = await request(app).delete(`/api/followings/?followerID=${randomUser1._id}&followingID=${randomUser2._id}`);
+      expect(response.statusCode).toBe(200);
+      expect(response.body.deletedCount).toBe(1);
+      const qFollowings = await dbLib.getObjectsByQuery('following', { _id: newFollowing._id });
+      expect(qFollowings.length).toBe(0);
+    });
+
+    test('delete a following by id', async () => {
+      await request(app).post('/api/followings').send({
+        followerID: randomUser1._id,
+        followingID: randomUser3._id,
+      });
+      const user1 = await dbLib.getObjectsByQuery('user', { _id: randomUser1._id });
+      const user3 = await dbLib.getObjectsByQuery('user', { _id: randomUser3._id });
+      const [newFollowing] = await dbLib.getObjectsByQuery('following', {
+        followerID: randomUser1._id,
+        followingID: randomUser3._id,
+      });
+      const response = await request(app).delete(`/api/followings/${newFollowing._id}`);
+      const newUser1 = await dbLib.getObjectsByQuery('user', { _id: randomUser1._id });
+      const newUser3 = await dbLib.getObjectsByQuery('user', { _id: randomUser3._id });
+      expect(response.statusCode).toBe(200);
+      expect(response.body.deletedCount).toBe(1);
+      const qFollowings = await dbLib.getObjectsByQuery('following', { _id: newFollowing._id });
+      expect(qFollowings.length).toBe(0);
+      expect(newUser1[0].followingCount).toBe(user1[0].followingCount - 1);
+      expect(newUser3[0].followerCount).toBe(user3[0].followerCount - 1);
+    });
+  });
+
+  describe('Login Endpoint Tests', () => {
+    let randomUser = null;
+    let randomUserProfile = null;
+    beforeAll(async () => {
+      const userName = faker.internet.userName();
+      const userEmail = faker.internet.email();
+      await request(app)
+        .post('/api/users')
+        .send({
+          userName,
+          userMotto: faker.lorem.sentence(),
+          userAvatar: faker.image.avatar(),
+          email: userEmail,
+        });
+      [randomUser] = await dbLib.getObjectsByQuery('user', { userName });
+      const ususerPassword = faker.internet.password();
+      await dbLib.createOneLogin({
+        email: userEmail,
+        password: ususerPassword,
+      });
+      [randomUserProfile] = await dbLib.getObjectsByQuery('login', { email: randomUser.email });
+    });
+
+    test('login a user', async () => {
+      const response = await request(app)
+        .post('/api/login')
+        .send({ email: randomUserProfile.email, password: randomUserProfile.password });
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toHaveProperty('userName');
+      expect(response.body).toHaveProperty('userMotto');
+      expect(response.body).toHaveProperty('userAvatar');
+      expect(response.body).toHaveProperty('email');
+      expect(response.body.followingCount).toEqual(0);
+      expect(response.body.followerCount).toEqual(0);
+      expect(response.body.postCount).toEqual(0);
+      expect(response.body.accessToken).toBeTruthy();
+    });
+
+    test('login a user that does not exist', async () => {
+      const response = await request(app)
+        .post('/api/login')
+        .send({ email: 'not exist', password: 'dfgh' });
+      expect(response.statusCode).toBe(200);
+      expect(response.body.error).toEqual('Incorrect Email or Password');
+    });
+  });
+
+  describe('Signup Endpoint Tests', () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const userName = faker.internet.userName();
+
+    test('signup a user', async () => {
+      const response = await request(app)
+        .post('/api/signup')
+        .send({ email, password, userName });
+      expect(response.statusCode).toBe(200);
+      expect(response.body.success).toEqual('user created');
+    });
+
+    test('signup a user with invalid inputs', async () => {
+      const response = await request(app)
+        .post('/api/signup')
+        .send({ email: 'dfsghjfdsvbgdfgbdfgdgdg', userName: ' ' });
+      expect(response.body.error).toEqual('invalid input');
     });
   });
 });

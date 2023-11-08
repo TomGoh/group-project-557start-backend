@@ -89,9 +89,10 @@ async function deleteOneFollowingByFollowerIDAndFollowingID(followingId, followe
 async function deleteOneFollowingById(id) {
   const result = await checkOneObjectExistByQuery('following', { _id: id });
   if (result != null) {
-    const followingRemoval = await deleteOneObjectById('following', result._id);
-    const followerCountResult = await decreaseOneFieldById('user', result.followerID, 'followerCount');
-    const followingCountResult = await decreaseOneFieldById('user', result.followingID, 'followingCount');
+    const following = await getOneObjectById('following', result._id);
+    const followingRemoval = await deleteOneObjectById('following', following._id);
+    const followerCountResult = await decreaseOneFieldById('user', following.followerID, 'followingCount');
+    const followingCountResult = await decreaseOneFieldById('user', following.followingID, 'followerCount');
     if (followingRemoval && followerCountResult && followingCountResult) {
       return followingRemoval;
     }

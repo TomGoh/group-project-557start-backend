@@ -45,7 +45,6 @@ likeRouter.get('/:id', async (req, res) => {
 likeRouter.delete('/:id', async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
-		console.log(req.params.id);
 		const result = await dbLib.deleteOneLikeById(req.params.id);
 		res.json(result);
 	} catch (err) {
