@@ -3,6 +3,7 @@ const express = require('express');
 const registerRouter = express.Router();
 const dbLib = require('../dbUtils/crud');
 const { methodLogging, logger } = require('../utils/logger');
+const { encryptPassword } = require('../utils/userVerify');
 
 registerRouter.post('/', async (req, res) => {
   methodLogging('POST', req);
@@ -13,7 +14,8 @@ registerRouter.post('/', async (req, res) => {
     if (!email || !password || !username) {
       return res.json({ error: 'invalid input' });
     }
-    const registerResult = await dbLib.userSignUp(email, password);
+    const enPassword = await encryptPassword(password);
+    const registerResult = await dbLib.userSignUp(email, enPassword);
     const userCreationResult = await dbLib.createOneUser({ email, userName: username });
     if (registerResult && userCreationResult) {
       return res.json({ success: 'user created' });

@@ -146,8 +146,8 @@ async function getAllObjects(modelName) {
   return getManyObjectsByQuery(modelName, {});
 }
 
-async function userLogin(email, password) {
-  return getOneObjectByQuery('login', { email, password });
+async function userLogin(email) {
+  return getOneObjectByQuery('login', { email });
 }
 
 async function userSignUp(email, password) {

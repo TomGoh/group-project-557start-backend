@@ -20,7 +20,7 @@ app.use(urlencoded({
 app.use(json({ limit: '10mb' }));
 
 app.listen(port, () => {
-	process.stdout.write(`Server listening at http://localhost:${port}`);
+	process.stdout.write(`Server listening at http://localhost:${port}\n`);
 });
 
 app.use('/api/users', userRouter);

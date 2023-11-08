@@ -53,6 +53,10 @@ postRouter.post('/', async (req, res) => {
   methodLogging('POST', req);
   try {
     const post = req.body;
+    if (post.userName === undefined) {
+      const user = await getObjectsByQuery('user', { _id: post.userID });
+      post.userName = user[0].userName;
+    }
     const result = await dbLib.createOnePost(post);
     res.json(result);
   } catch (err) {
