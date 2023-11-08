@@ -8,6 +8,7 @@ const {
   getOneObjectByQuery,
   updateOneFieldById,
   getOneRandomObject,
+  decreaseOneFieldById,
 } = require('./dbFunctions');
 
 async function createOneUser(user) {
@@ -28,7 +29,15 @@ async function createOnePost(post) {
 }
 
 async function createOneComment(comment) {
-  return insertOneObject('comment', comment);
+  if (comment.userID === undefined || comment.postID === undefined) {
+    return null;
+  }
+  const commentResult = await insertOneObject('comment', comment);
+  const commentCountResult = await increaseOneFieldById('post', comment.postID, 'commentCount');
+  if (commentResult && commentCountResult) {
+    return commentResult;
+  }
+  return commentResult;
 }
 
 async function createOneFollowing(following) {
@@ -60,7 +69,7 @@ async function deleteOneUserById(userId) {
 async function deleteOnePostById(postID) {
   const post = await getOneObjectById('post', postID);
   const postResult = await deleteOneObjectById('post', postID);
-  const postCountResult = await increaseOneFieldById('user', post.userID, 'postCount', -1);
+  const postCountResult = await decreaseOneFieldById('user', post.userID, 'postCount');
   return post && postResult && postCountResult;
 }
 
@@ -68,8 +77,8 @@ async function deleteOneFollowingByFollowerIDAndFollowingID(followingId, followe
   const result = await checkOneObjectExistByQuery('following', { followingID: followingId, followerID: followerId });
   if (result != null) {
     const followingRemoval = await deleteOneObjectById('following', result._id);
-    const followerCountResult = await increaseOneFieldById('user', followerId, 'followerCount', -1);
-    const followingCountResult = await increaseOneFieldById('user', followingId, 'followingCount', -1);
+    const followerCountResult = await decreaseOneFieldById('user', followerId, 'followerCount');
+    const followingCountResult = await decreaseOneFieldById('user', followingId, 'followingCount');
     if (followingRemoval && followerCountResult && followingCountResult) {
       return followingRemoval;
     }
@@ -81,8 +90,8 @@ async function deleteOneFollowingById(id) {
   const result = await checkOneObjectExistByQuery('following', { _id: id });
   if (result != null) {
     const followingRemoval = await deleteOneObjectById('following', result._id);
-    const followerCountResult = await increaseOneFieldById('user', result.followerID, 'followerCount', -1);
-    const followingCountResult = await increaseOneFieldById('user', result.followingID, 'followingCount', -1);
+    const followerCountResult = await decreaseOneFieldById('user', result.followerID, 'followerCount');
+    const followingCountResult = await decreaseOneFieldById('user', result.followingID, 'followingCount');
     if (followingRemoval && followerCountResult && followingCountResult) {
       return followingRemoval;
     }
@@ -93,8 +102,9 @@ async function deleteOneFollowingById(id) {
 async function deleteOneLikeById(likeId) {
   const result = await checkOneObjectExistByQuery('like', { _id: likeId });
   if (result != null) {
-    const likeRemoval = await deleteOneObjectById('like', result._id);
-    const likeCountResult = await increaseOneFieldById('post', result.postID, 'likeCount', -1);
+    const like = await getOneObjectById('like', result._id);
+    const likeRemoval = await deleteOneObjectById('like', like._id);
+    const likeCountResult = await decreaseOneFieldById('post', like.postID, 'likeCount');
     if (likeRemoval && likeCountResult) {
       return likeRemoval;
     }
@@ -106,7 +116,7 @@ async function deleteOneLikeByUserIdAndPostId(userId, postId) {
   const result = await checkOneObjectExistByQuery('like', { userID: userId, postID: postId });
   if (result != null) {
     const likeRemoval = await deleteOneObjectById('like', result._id);
-    const likeCountResult = await increaseOneFieldById('post', postId, 'likeCount', -1);
+    const likeCountResult = await decreaseOneFieldById('post', postId, 'likeCount');
     if (likeRemoval && likeCountResult) {
       return likeRemoval;
     }
@@ -117,8 +127,10 @@ async function deleteOneLikeByUserIdAndPostId(userId, postId) {
 async function deleteOneCommentById(commentId) {
   const result = await checkOneObjectExistByQuery('comment', { _id: commentId });
   if (result != null) {
+    const comment = await getOneObjectById('comment', result._id);
     const commentRemoval = await deleteOneObjectById('comment', result._id);
-    if (commentRemoval) {
+    const commentCountResult = await decreaseOneFieldById('post', comment.postID, 'commentCount');
+    if (commentRemoval && commentCountResult) {
       return commentRemoval;
     }
   }

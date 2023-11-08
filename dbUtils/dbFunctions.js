@@ -116,7 +116,7 @@ async function increaseOneFieldById(modelName, id, field) {
 
 async function decreaseOneFieldById(modelName, id, field) {
   try {
-    return await modelMapper.get(modelName).updateOne({ _id: id }, { $inc: { [field]: -1 } });
+    return await modelMapper.get(modelName).findByIdAndUpdate(id, { $inc: { [field]: -1 } });
   } catch (err) {
     errorPrinter('decreasing one field by id', modelName, err);
     throw new Error(err);
