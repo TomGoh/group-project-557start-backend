@@ -86,7 +86,8 @@ followingRouter.delete('/', async (req, res) => {
 followingRouter.delete('/:id', async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
-		const result = await dbLib.deleteOneFollowingById(req.params.id);
+		const followingId = req.params.id;
+		const result = await dbLib.deleteOneFollowingById(followingId);
 		return res.json(result);
 	} catch (err) {
 		logger.error(err.toString());
