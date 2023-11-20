@@ -6,6 +6,7 @@ const dbLib = require('../dbUtils/crud');
 
 describe('Backend Endpoint Tests', () => {
   describe('Blob Endpoint Tests', () => {
+
     test('blob upload test', async () => {
       const response = await request(app)
         .post('/api/blob')
@@ -18,6 +19,7 @@ describe('Backend Endpoint Tests', () => {
       const fileAccess = await axiosInstance.get(location);
       expect(fileAccess.status).toBe(200);
     }, 10000);
+
     test('blob invalid file upload test', async () => {
       const response = await request(app)
         .post('/api/blob')
@@ -25,6 +27,7 @@ describe('Backend Endpoint Tests', () => {
         .attach('file', './test/backend.test.js');
       expect(response.statusCode).toBe(415);
     }, 10000);
+
     test('no file uploaed', async () => {
       const response = await request(app)
         .post('/api/blob')
@@ -723,6 +726,27 @@ describe('Backend Endpoint Tests', () => {
         .post('/api/signup')
         .send({ email: 'dfsghjfdsvbgdfgbdfgdgdg', userName: ' ' });
       expect(response.body.error).toEqual('invalid input');
+    });
+
+    test('signup email and userName check', async () => {
+      const randomUser = await dbLib.getOneRandomUser();
+      const response = await request(app)
+        .get(`/api/signup?email=${randomUser.email}&username=${randomUser.userName}`);
+      expect(response.error).not.toBe(undefined);
+    });
+
+    test('sign up email check', async () => {
+      const randomUser = await dbLib.getOneRandomUser();
+      const response = await request(app)
+        .get(`/api/signup?email=${randomUser.email}`);
+      expect(response.error).not.toBe(undefined);
+    });
+
+    test('sign up userName check', async () => {
+      const randomUser = await dbLib.getOneRandomUser();
+      const response = await request(app)
+        .get(`/api/signup?username=${randomUser.userName}`);
+      expect(response.error).not.toBe(undefined);
     });
   });
 });
