@@ -1,11 +1,12 @@
 const redis = require('redis');
+const { redisLite } = require('./RedisLite');
 
 const redisFactory = (() => {
   let redisClient;
 
   async function createInstance() {
     const host = process.env.REDIS_HOST || 'localhost';
-    const port = process.env.REDIS_PORT || 9999;
+    const port = process.env.REDIS_PORT || 6379;
     process.stdout.write(`Connecting to Redis on ${host}:${port}\n`);
     const client = redis.createClient({
       host,
@@ -15,16 +16,18 @@ const redisFactory = (() => {
     client.on('connect', () => {
       process.stdout.write(`Redis client connected on ${host}:${port}\n`);
     });
-    client.on('error', (error) => {
-      process.stdout.write('Redis Error:', error);
-    });
     return client;
   }
 
   return {
     getClient: async () => {
       if (!redisClient) {
-        redisClient = await createInstance();
+        try {
+          redisClient = await createInstance();
+        } catch (err) {
+          process.stdout.write('Cannot connect to Redis. Using RedisLite instead.\n');
+          redisClient = redisLite;
+        }
       }
       return redisClient;
     },

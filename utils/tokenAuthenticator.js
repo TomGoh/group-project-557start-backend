@@ -29,7 +29,7 @@ async function tokenAuthenticator(req, res, next) {
 			return next();
 		}
 		logger.error('invalid token');
-		res.status(401).json({ error: 'invalid token' });
+		return res.status(401).json({ error: 'invalid token' });
 	}
 	logger.error('missing token');
 	return res.status(401).json({ error: 'missing token' });
