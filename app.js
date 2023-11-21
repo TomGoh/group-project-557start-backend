@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const { urlencoded, json } = require('express');
 const { userRouter } = require('./api/users');
 const { postRouter } = require('./api/posts');
@@ -9,6 +10,7 @@ const { commentRouter } = require('./api/comments');
 const { loginRouter } = require('./api/login');
 const { registerRouter } = require('./api/register');
 const { blobRouter } = require('./api/blob');
+const { tokenAuthenticator } = require('./utils/jwtTools');
 
 const corsOptions = {
 	origin: 'http://localhost:3000',
@@ -23,11 +25,12 @@ app.use(urlencoded({
 	limit: '10mb',
 }));
 app.use(json({ limit: '10mb' }));
+app.use(cookieParser());
 
 app.listen(port, () => {
 	process.stdout.write(`Server listening at http://localhost:${port}\n`);
 });
-
+app.use(tokenAuthenticator);
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
 app.use('/api/followings', followingRouter);
