@@ -10,7 +10,7 @@ const { commentRouter } = require('./api/comments');
 const { loginRouter } = require('./api/login');
 const { registerRouter } = require('./api/register');
 const { blobRouter } = require('./api/blob');
-const { tokenAuthenticator } = require('./utils/jwtTools');
+const { tokenAuthenticator } = require('./utils/tokenAuthenticator');
 
 const corsOptions = {
 	origin: 'http://localhost:3000',

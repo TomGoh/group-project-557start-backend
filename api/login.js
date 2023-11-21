@@ -3,8 +3,8 @@ const express = require('express');
 const loginRouter = express.Router();
 const dbLib = require('../dbUtils/crud');
 const { methodLogging, logger } = require('../utils/logger');
-const jwtTools = require('../utils/jwtTools');
 const { verifyPassword } = require('../utils/userVerify');
+const { tokenManager } = require('../utils/tokenManager');
 
 loginRouter.post('/', async (req, res) => {
   methodLogging('POST', req);
@@ -17,7 +17,7 @@ loginRouter.post('/', async (req, res) => {
     const loginData = await dbLib.userLogin(email);
     if (loginData && verifyPassword(password, loginData.password)) {
       const profile = await dbLib.getOneObjectByQuery('user', { email });
-      const token = jwtTools.generateToken(profile);
+      const token = tokenManager.generateToken(profile);
       return res.json({ ...profile._doc, accessToken: token });
     }
     return res.json({ error: 'Incorrect Email or Password' });
