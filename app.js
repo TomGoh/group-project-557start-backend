@@ -10,9 +10,14 @@ const { loginRouter } = require('./api/login');
 const { registerRouter } = require('./api/register');
 const { blobRouter } = require('./api/blob');
 
+const corsOptions = {
+	origin: 'http://localhost:3000',
+	optionsSuccessStatus: 200,
+	credentials: true,
+};
 const app = express();
 const port = 8888;
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(urlencoded({
 	extended: false,
 	limit: '10mb',
