@@ -1,4 +1,5 @@
 const express = require('express');
+const redisFactory = require('../utils/redisFactory');
 
 const userRouter = express.Router();
 const dbLib = require('../dbUtils/crud');
@@ -21,7 +22,17 @@ userRouter.get('/', async (req, res) => {
 });
 
 userRouter.get('/:id', async (req, res) => {
+	if (!req.params.id) {
+		return res.json({ error: 'Missing id parameter' });
+	}
+	const redisClient = await redisFactory.getClient();
+	const redisResult = await redisClient.get(`user:${req.params.id}`);
+	if (redisResult) {
+		return res.json(JSON.parse(redisResult));
+	}
 	const user = await dbLib.getObjectsByQuery('user', { _id: req.params.id });
+	await redisClient.set(`user:${req.params.id}`, JSON.stringify(user));
+	redisClient.expire(`user:${req.params.id}`, 1800);
 	return res.json(user);
 });
 

@@ -34,6 +34,9 @@ commentRouter.get('/', async (req, res) => {
 commentRouter.get('/:id', async (req, res) => {
 	methodLogging('GET', req);
 	try {
+		if (!req.params.id) {
+			return res.json({ error: 'Missing id parameter' });
+		}
 		const responseData = await getObjectsByQuery('comment', { _id: req.params.id });
 		return res.json(responseData);
 	} catch (err) {

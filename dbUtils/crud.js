@@ -1,4 +1,5 @@
 /* eslint-disable no-underscore-dangle */
+const redisFactory = require('../utils/redisFactory');
 const {
   getOneObjectById, insertOneObject,
   deleteOneObjectById,
@@ -21,6 +22,10 @@ async function createOneLogin(login) {
 
 async function createOnePost(post) {
   const postResult = await insertOneObject('post', post);
+  const { userID } = post;
+  const redisClient = await redisFactory.getClient();
+  await redisClient.del(`user:${userID}`);
+  await redisClient.del(`post:${userID}`);
   const postCountResult = await increaseOneFieldById('user', post.userID, 'postCount');
   if (postResult && postCountResult) {
     return postResult;
@@ -32,6 +37,10 @@ async function createOneComment(comment) {
   if (comment.userID === undefined || comment.postID === undefined) {
     return null;
   }
+  const { postID } = comment;
+  const redisClient = await redisFactory.getClient();
+  await redisClient.del(`post:${postID}`);
+  await redisClient.del(`post:${comment.userID}`);
   const commentResult = await insertOneObject('comment', comment);
   const commentCountResult = await increaseOneFieldById('post', comment.postID, 'commentCount');
   if (commentResult && commentCountResult) {
@@ -44,15 +53,22 @@ async function createOneFollowing(following) {
   if (following.userID === following.followingID) {
     return false;
   }
+  const redisClient = await redisFactory.getClient();
   const followingResult = await insertOneObject('following', following);
   const followingCountResult = await increaseOneFieldById('user', following.followerID, 'followingCount');
   const followerCountResult = await increaseOneFieldById('user', following.followingID, 'followerCount');
+  await redisClient.del(`user:${following.followerID}`);
+  await redisClient.del(`user:${following.followingID}`);
   return followingResult && followingCountResult && followerCountResult;
 }
 
 async function createOneLike(like) {
   const likeResult = await insertOneObject('like', like);
   const likeCountResult = await increaseOneFieldById('post', like.postID, 'likeCount');
+  const post = await getOneObjectById('post', like.postID);
+  const redisClient = await redisFactory.getClient();
+  await redisClient.del(`post:${like.postID}`);
+  await redisClient.del(`post:${post.userID}`);
   return likeResult && likeCountResult;
 }
 
@@ -70,6 +86,10 @@ async function deleteOnePostById(postID) {
   const post = await getOneObjectById('post', postID);
   const postResult = await deleteOneObjectById('post', postID);
   const postCountResult = await decreaseOneFieldById('user', post.userID, 'postCount');
+  const redisClient = await redisFactory.getClient();
+  await redisClient.del(`user:${post.userID}`);
+  await redisClient.del(`post:${post.userID}`);
+  await redisClient.del(`post:${postID}`);
   return post && postResult && postCountResult;
 }
 
@@ -79,6 +99,9 @@ async function deleteOneFollowingByFollowerIDAndFollowingID(followingId, followe
     const followingRemoval = await deleteOneObjectById('following', result._id);
     const followerCountResult = await decreaseOneFieldById('user', followerId, 'followingCount');
     const followingCountResult = await decreaseOneFieldById('user', followingId, 'followerCount');
+    const redisClient = await redisFactory.getClient();
+    await redisClient.del(`user:${followerId}`);
+    await redisClient.del(`user:${followingId}`);
     if (followingRemoval && followerCountResult && followingCountResult) {
       return followingRemoval;
     }
@@ -93,6 +116,9 @@ async function deleteOneFollowingById(id) {
     const followingRemoval = await deleteOneObjectById('following', following._id);
     const followerCountResult = await decreaseOneFieldById('user', following.followerID, 'followingCount');
     const followingCountResult = await decreaseOneFieldById('user', following.followingID, 'followerCount');
+    const redisClient = await redisFactory.getClient();
+    await redisClient.del(`user:${following.followerID}`);
+    await redisClient.del(`user:${following.followingID}`);
     if (followingRemoval && followerCountResult && followingCountResult) {
       return followingRemoval;
     }
@@ -106,6 +132,10 @@ async function deleteOneLikeById(likeId) {
     const like = await getOneObjectById('like', result._id);
     const likeRemoval = await deleteOneObjectById('like', like._id);
     const likeCountResult = await decreaseOneFieldById('post', like.postID, 'likeCount');
+    const post = await getOneObjectById('post', like.postID);
+    const redisClient = await redisFactory.getClient();
+    await redisClient.del(`post:${like.postID}`);
+    await redisClient.del(`post:${post.userID}`);
     if (likeRemoval && likeCountResult) {
       return likeRemoval;
     }
@@ -118,6 +148,10 @@ async function deleteOneLikeByUserIdAndPostId(userId, postId) {
   if (result != null) {
     const likeRemoval = await deleteOneObjectById('like', result._id);
     const likeCountResult = await decreaseOneFieldById('post', postId, 'likeCount');
+    const redisClient = await redisFactory.getClient();
+    const post = await getOneObjectById('post', postId);
+    await redisClient.del(`post:${postId}`);
+    await redisClient.del(`post:${post.userID}`);
     if (likeRemoval && likeCountResult) {
       return likeRemoval;
     }
@@ -131,6 +165,10 @@ async function deleteOneCommentById(commentId) {
     const comment = await getOneObjectById('comment', result._id);
     const commentRemoval = await deleteOneObjectById('comment', result._id);
     const commentCountResult = await decreaseOneFieldById('post', comment.postID, 'commentCount');
+    const post = await getOneObjectById('post', comment.postID);
+    const redisClient = await redisFactory.getClient();
+    await redisClient.del(`post:${comment.postID}`);
+    await redisClient.del(`post:${post.userID}`);
     if (commentRemoval && commentCountResult) {
       return commentRemoval;
     }
@@ -155,10 +193,14 @@ async function userSignUp(email, password) {
 }
 
 async function updateOneUserMotto(userId, motto) {
+  const redisClient = await redisFactory.getClient();
+  await redisClient.del(`user:${userId}`);
   return updateOneFieldById('user', userId, 'userMotto', motto);
 }
 
 async function updateOnePostLikeCount(postId, newLikeCount) {
+  const redisClient = await redisFactory.getClient();
+  await redisClient.del(`post:${postId}`);
   return updateOneFieldById('post', postId, 'likeCount', newLikeCount);
 }
 

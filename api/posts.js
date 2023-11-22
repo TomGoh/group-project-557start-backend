@@ -1,4 +1,5 @@
 const express = require('express');
+const redisFactory = require('../utils/redisFactory');
 
 const postRouter = express.Router();
 const dbLib = require('../dbUtils/crud');
@@ -11,12 +12,19 @@ postRouter.get('/', async (req, res) => {
   try {
     const userid = req.query.userID;
     const username = req.query.userName;
+    const redisClient = await redisFactory.getClient();
     if (userid) {
       const user = await getObjectsByQuery('user', { _id: userid });
       if (!user) {
         return res.json({ error: 'User does not exist' });
       }
+      const cachedPost = await redisClient.get(`post:${userid}`);
+      if (cachedPost) {
+        return res.json(JSON.parse(cachedPost));
+      }
       const usersPost = await getObjectsByQuery('post', { userID: userid });
+      await redisClient.set(`post:${userid}`, JSON.stringify(usersPost));
+      await redisClient.expire(`post:${userid}`, 1800);
       return res.json(usersPost);
     }
     if (username) {
@@ -40,8 +48,15 @@ postRouter.get('/:id', async (req, res) => {
   if (!req.params.id) {
     return res.json({ error: 'Missing id parameter' });
   }
+  const redisClient = await redisFactory.getClient();
+  const redisResult = await redisClient.get(`post:${req.params.id}`);
+  if (redisResult) {
+    return res.json(JSON.parse(redisResult));
+  }
   try {
     const responseData = await getManyObjectsByQuery('post', { _id: req.params.id });
+    await redisClient.set(`post:${req.params.id}`, JSON.stringify(responseData));
+    await redisClient.expire(`post:${req.params.id}`, 1800);
     return res.json(responseData);
   } catch (err) {
     logger.error(err.toString());

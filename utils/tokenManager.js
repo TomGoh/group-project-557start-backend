@@ -24,8 +24,8 @@ const tokenManager = {
   },
   disableToken: async (token) => {
     const redisClient = await redisFactory.getClient();
-    redisClient.set(token, 'disabled');
-    redisClient.expire(token, 21600);
+    await redisClient.set(token, 'disabled');
+    await redisClient.expire(token, 21600);
   },
   isTokenDisabled: async (token) => {
     const redisClient = await redisFactory.getClient();
