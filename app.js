@@ -12,6 +12,7 @@ const { registerRouter } = require('./api/register');
 const { blobRouter } = require('./api/blob');
 const { tokenAuthenticator } = require('./utils/tokenAuthenticator');
 const { logoutRouter } = require('./api/logout');
+const { hideRouter } = require('./api/hide');
 
 const corsOptions = {
 	origin: 'http://localhost:3000',
@@ -41,5 +42,6 @@ app.use('/api/login', loginRouter);
 app.use('/api/signup', registerRouter);
 app.use('/api/blob', blobRouter);
 app.use('/api/logout', logoutRouter);
+app.use('/api/hide', hideRouter);
 
 module.exports = app;

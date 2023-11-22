@@ -1,5 +1,5 @@
 const {
-  User, Post, Comment, Following, Like, Login,
+  User, Post, Comment, Following, Like, Login, Hide,
 } = require('./schema');
 
 const modelMapper = new Map([
@@ -9,6 +9,7 @@ const modelMapper = new Map([
   ['following', Following],
   ['like', Like],
   ['login', Login],
+  ['hide', Hide],
 ]);
 
 function errorPrinter(operation, modelName, err) {

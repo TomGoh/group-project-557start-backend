@@ -220,6 +220,22 @@ async function checkUsernameExistence(username) {
   return checkOneObjectExistByQuery('user', { userName: username });
 }
 
+async function getOneHideByUserIdAndPostId(userId, postId) {
+  return getOneObjectByQuery('hide', { userID: userId, postID: postId });
+}
+
+async function getHidesByUserId(userId) {
+  return getObjectsByQuery('hide', { userID: userId });
+}
+
+async function getAllHides() {
+  return getAllObjects('hide');
+}
+
+async function createOneHide(hide) {
+  return insertOneObject('hide', hide);
+}
+
 module.exports = {
   createOneUser,
   createOnePost,
@@ -246,4 +262,8 @@ module.exports = {
   getOneRandomPost,
   checkEmailExistence,
   checkUsernameExistence,
+  getOneHideByUserIdAndPostId,
+  getHidesByUserId,
+  getAllHides,
+  createOneHide,
 };

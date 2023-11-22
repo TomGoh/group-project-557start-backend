@@ -48,12 +48,18 @@ const likeSchema = new Schema({
   userName: { type: String, required: true },
 });
 
+const hideSchema = new Schema({
+  userID: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+  postID: { type: Schema.Types.ObjectId, required: true, ref: 'Post' },
+});
+
 const User = mongoose.model('User', userSchema);
 const Post = mongoose.model('Post', postSchema);
 const Comment = mongoose.model('Comment', commentSchema);
 const Following = mongoose.model('Following', followingSchema);
 const Like = mongoose.model('Like', likeSchema);
 const Login = mongoose.model('Login', loginSchema);
+const Hide = mongoose.model('Hide', hideSchema);
 
 module.exports = {
   User,
@@ -62,4 +68,5 @@ module.exports = {
   Following,
   Like,
   Login,
+  Hide,
 };
