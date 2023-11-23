@@ -9,7 +9,7 @@ const redisLite = {
     return this.dataStore.get(key);
   },
 
-  delete(key) {
+  del(key) {
     this.dataStore.delete(key);
   },
 
