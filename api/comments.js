@@ -1,10 +1,9 @@
 const express = require('express');
 
 const commentRouter = express.Router();
-const dbLib = require('../dbUtils/crud');
+const commentOperations = require('../dbUtils/comment/commentOperations');
 const { methodLogging, logger } = require('../utils/logger');
-const { getObjectsByQuery } = require('../dbUtils/crud');
-const { getManyObjectsByQuery } = require('../dbUtils/dbFunctions');
+const { getUserByUserId } = require('../dbUtils/user/userOperations');
 
 commentRouter.get('/', async (req, res) => {
 	methodLogging('GET', req);
@@ -12,18 +11,18 @@ commentRouter.get('/', async (req, res) => {
 		const userid = req.query.userID;
 		const postid = req.query.postID;
 		if (userid && postid) {
-			const responseData = await getObjectsByQuery('comment', { userID: userid, postID: postid });
+			const responseData = await commentOperations.getCommentsByUserIdAndPostId(userid, postid);
 			return res.json(responseData);
 		}
 		if (userid) {
-			const responseData = await getObjectsByQuery('comment', { userID: userid });
+			const responseData = await commentOperations.getCommentsByUserId(userid);
 			return res.json(responseData);
 		}
 		if (postid) {
-			const responseData = await getObjectsByQuery('comment', { postID: postid });
+			const responseData = await commentOperations.getCommentsByPostId(postid);
 			return res.json(responseData);
 		}
-		const responseData = await getManyObjectsByQuery('comment', {});
+		const responseData = await commentOperations.getAllComments();
 		return res.json(responseData);
 	} catch (err) {
 		logger.error(err.toString());
@@ -37,7 +36,7 @@ commentRouter.get('/:id', async (req, res) => {
 		if (!req.params.id) {
 			return res.json({ error: 'Missing id parameter' });
 		}
-		const responseData = await getObjectsByQuery('comment', { _id: req.params.id });
+		const responseData = await commentOperations.getCommentById(req.params.id);
 		return res.json(responseData);
 	} catch (err) {
 		logger.error(err.toString());
@@ -50,10 +49,10 @@ commentRouter.post('/', async (req, res) => {
 	try {
 		const comment = req.body;
 		if (comment.userName === undefined) {
-			const user = await getObjectsByQuery('user', { _id: comment.userID });
-			comment.userName = user[0].userName;
+			const user = await getUserByUserId(comment.userID);
+			comment.userName = user.userName;
 		}
-		const result = await dbLib.createOneComment(comment);
+		const result = await commentOperations.createOneComment(comment);
 		res.json(result);
 	} catch (err) {
 		res.json({ error: err.toString() });
@@ -63,7 +62,7 @@ commentRouter.post('/', async (req, res) => {
 commentRouter.delete('/:id', async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
-		const result = await dbLib.deleteOneCommentById(req.params.id);
+		const result = await commentOperations.deleteOneCommentById(req.params.id);
 		res.json(result);
 	} catch (err) {
 		res.json({ error: err.toString() });

@@ -1,10 +1,11 @@
 const express = require('express');
 
 const loginRouter = express.Router();
-const dbLib = require('../dbUtils/crud');
+const generalOperations = require('../dbUtils/generalOperations');
 const { methodLogging, logger } = require('../utils/logger');
 const { verifyPassword } = require('../utils/userVerify');
 const { tokenManager } = require('../utils/tokenManager');
+const { getUserByEmail } = require('../dbUtils/user/userOperations');
 
 loginRouter.post('/', async (req, res) => {
   methodLogging('POST', req);
@@ -14,9 +15,9 @@ loginRouter.post('/', async (req, res) => {
     if (!email || !password) {
       return res.json({ error: 'invalid input' });
     }
-    const loginData = await dbLib.userLogin(email);
+    const loginData = await generalOperations.userLogin(email);
     if (loginData && verifyPassword(password, loginData.password)) {
-      const profile = await dbLib.getOneObjectByQuery('user', { email });
+      const profile = await getUserByEmail(email);
       const token = tokenManager.generateToken(profile);
       return res.json({ ...profile._doc, accessToken: token });
     }

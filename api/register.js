@@ -1,7 +1,8 @@
 const express = require('express');
 
 const registerRouter = express.Router();
-const dbLib = require('../dbUtils/crud');
+const generalOperations = require('../dbUtils/generalOperations');
+const userOperations = require('../dbUtils/user/userOperations');
 const { methodLogging, logger } = require('../utils/logger');
 const { encryptPassword } = require('../utils/userVerify');
 
@@ -15,8 +16,8 @@ registerRouter.post('/', async (req, res) => {
       return res.json({ error: 'invalid input' });
     }
     const enPassword = await encryptPassword(password);
-    const registerResult = await dbLib.userSignUp(email, enPassword);
-    const userCreationResult = await dbLib.createOneUser({ email, userName: username });
+    const registerResult = await generalOperations.userSignUp(email, enPassword);
+    const userCreationResult = await userOperations.createOneUser({ email, userName: username });
     if (registerResult && userCreationResult) {
       return res.json({ success: 'user created' });
     }
@@ -32,8 +33,8 @@ registerRouter.get('/', async (req, res) => {
   try {
     const { email, username } = req.query;
     if (email && username) {
-      const emailExistence = await dbLib.checkEmailExistence(email);
-      const usernameExistence = await dbLib.checkUsernameExistence(username);
+      const emailExistence = await userOperations.checkEmailExistence(email);
+      const usernameExistence = await userOperations.checkUsernameExistence(username);
       if (emailExistence) {
         return res.json({ error: 'email already exists' });
       }
@@ -42,13 +43,13 @@ registerRouter.get('/', async (req, res) => {
       }
     }
     if (email) {
-      const emailExistence = await dbLib.checkEmailExistence(email);
+      const emailExistence = await userOperations.checkEmailExistence(email);
       if (emailExistence) {
         return res.json({ error: 'email already exists' });
       }
     }
     if (username) {
-      const usernameExistence = await dbLib.checkUsernameExistence(username);
+      const usernameExistence = await userOperations.checkUsernameExistence(username);
       if (usernameExistence) {
         return res.json({ error: 'username already exists' });
       }
