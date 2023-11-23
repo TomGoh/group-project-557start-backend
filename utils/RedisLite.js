@@ -34,6 +34,15 @@ const redisLite = {
       this.delete(key);
     }, seconds * 1000);
   },
+
+  incr(key) {
+    const value = this.get(key);
+    if (value) {
+      this.set(key, value + 1);
+    } else {
+      this.set(key, 1);
+    }
+  },
 };
 
 module.exports = { redisLite };

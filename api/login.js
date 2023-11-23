@@ -21,6 +21,10 @@ loginRouter.post('/', async (req, res) => {
       const token = tokenManager.generateToken(profile);
       return res.json({ ...profile._doc, accessToken: token });
     }
+    const lock = await generalOperations.loginLock(email);
+    if (lock) {
+      return res.json({ error: 'Account Locked. Please try again after 5 minutes.' });
+    }
     return res.json({ error: 'Incorrect Email or Password' });
   } catch (err) {
     logger.error(err.toString());
