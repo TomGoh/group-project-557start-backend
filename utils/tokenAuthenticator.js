@@ -5,7 +5,7 @@ dotenv.config();
 
 const { methodLogging, logger } = require('./logger');
 
-const pathException = ['/api/login', '/api/signup'];
+const pathException = ['/api/login', '/api/signup', '/api/logout'];
 
 async function tokenAuthenticator(req, res, next) {
 	methodLogging('tokenAuthenticator', req);
