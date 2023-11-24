@@ -2,14 +2,12 @@
 const { faker } = require('@faker-js/faker');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
-const {
-  createOneUser,
-  createOnePost,
-  createOneComment,
-  createOneFollowing,
-  createOneLike,
-  createOneLogin,
-} = require('./crud');
+const { createOneUser } = require('./user/userOperations');
+const { createOnePost } = require('./post/postOperations');
+const { createOneComment } = require('./comment/commentOperations');
+const { createOneFollowing } = require('./following/followingOperations');
+const { createOneLike } = require('./like/likeOperations');
+const { userSignup } = require('../api/register');
 const { getAllObjects } = require('./dbFunctions');
 
 const SALT_LENGTH = process.env.SALT_LENGTH || 10;
@@ -113,7 +111,7 @@ async function populateData() {
 
   const { userList, userLoginList } = await generateUsers(userCount);
   await Promise.all(userList.map(async (user) => createOneUser(user)));
-  await Promise.all(userLoginList.map(async (userLogin) => createOneLogin(userLogin)));
+  await Promise.all(userLoginList.map(async (userLogin) => userSignup(userLogin)));
   process.stdout.write('User creation done\n');
   const users = await getAllObjects('user');
   const postList = generatePosts(maxPostCountPerUser, users);

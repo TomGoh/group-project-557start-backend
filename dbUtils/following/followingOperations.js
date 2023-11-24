@@ -1,14 +1,28 @@
 const { deleteCache, setCache, getCache } = require('../../utils/redisMaintenance');
 const dbFunctions = require('../dbFunctions');
 
+/**
+ * Get all followings
+ * @returns {Promise<*>} array of followings
+ */
 async function getAllFollowings() {
   return dbFunctions.getAllObjects('following');
 }
 
+/**
+ * Get following by id
+ * @param followingId following id
+ * @returns {Promise<*>} following
+ */
 async function getFollowingById(followingId) {
   return dbFunctions.getOneObjectById('following', followingId);
 }
 
+/**
+ * Get following by userId of the user who is following others
+ * @param sourceId the userId of the user who is following others
+ * @returns {Promise<*>} array of followings
+ */
 async function getFollowingBySourceId(sourceId) {
   const cachedFollowings = await getCache(`following:${sourceId}`);
   if (cachedFollowings) {
@@ -19,22 +33,35 @@ async function getFollowingBySourceId(sourceId) {
   return response;
 }
 
+/**
+ * Get follower by userId of the user who is being followed
+ * @param targetId the userId of the user who is being followed
+ * @returns {Promise<*>} array of followings
+ */
 async function getFollowerByTargetId(targetId) {
-  const response = await dbFunctions.getManyObjectsByQuery('following', { targetID: targetId });
-  return response;
+  return await dbFunctions.getManyObjectsByQuery('following', { targetID: targetId });
 }
 
+/**
+ * Get following by followerID and followingID
+ * @param followerID the userId of the user who is following others
+ * @param followingID the userId of the user who is being followed
+ * @returns {Promise<*>} array of followings
+ */
 async function getFollowingByFollowerIDAndFollowingID(followerID, followingID) {
   const cachedFollowings = await getCache(`following:${followerID}`);
   if (cachedFollowings) {
-    const filteredFollowings = cachedFollowings
+    return cachedFollowings
       .filter((following) => following.followingID === followingID);
-    return filteredFollowings;
   }
-  const response = await dbFunctions.getManyObjectsByQuery('following', { followerID, followingID });
-  return response;
+  return await dbFunctions.getManyObjectsByQuery('following', { followerID, followingID });
 }
 
+/**
+ * Create one following
+ * @param following following object
+ * @returns {Promise<*|boolean>} true if success, false if failed
+ */
 async function createOneFollowing(following) {
   if (following.userID === following.followingID) {
     return false;
@@ -48,6 +75,12 @@ async function createOneFollowing(following) {
   return followingResult && followingCountResult && followerCountResult;
 }
 
+/**
+ * Delete one following by the userId of both the user who is following others and the user who is being followed
+ * @param followerID  the userId of the user who is following others
+ * @param followingID the userId of the user who is being followed
+ * @returns {Promise<*|string>} true if success, false if failed, "following doesn't exist" if following doesn't exist
+ */
 async function deleteOneFollowingByFollowerIDAndFollowingID(followerID, followingID) {
   const result = await dbFunctions.getOneObjectByQuery('following', { followerID, followingID });
   if (result != null) {
@@ -64,6 +97,11 @@ async function deleteOneFollowingByFollowerIDAndFollowingID(followerID, followin
   return "following doesn't exist";
 }
 
+/**
+ * Delete one following by followingId
+ * @param followingId following id
+ * @returns {Promise<*|string>} true if success, false if failed, "following doesn't exist" if following doesn't exist
+ */
 async function deleteOneFollowingById(followingId) {
   const result = await dbFunctions.checkOneObjectExistByQuery('following', { _id: followingId });
   if (result != null) {

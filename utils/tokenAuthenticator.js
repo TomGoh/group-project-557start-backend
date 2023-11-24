@@ -7,6 +7,13 @@ const { methodLogging, logger } = require('./logger');
 
 const pathException = ['/api/login', '/api/signup', '/api/logout'];
 
+/**
+ * Middleware to check for valid token
+ * @param req request
+ * @param res response
+ * @param next next
+ * @returns {Promise<*>} next
+ */
 async function tokenAuthenticator(req, res, next) {
 	methodLogging('tokenAuthenticator', req);
 	if (pathException.includes(req.path)) {

@@ -27,7 +27,7 @@ async function imageUpload(image, imageKey) {
   return data;
 }
 
-async function retriveImage(imageKey) {
+async function retrieveImage(imageKey) {
   const getCommand = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
     Key: imageKey,
@@ -75,7 +75,7 @@ const upload = multer({
 
 module.exports = {
   imageUpload,
-  retriveImage,
+  retriveImage: retrieveImage,
   imageDelete,
   upload,
 };

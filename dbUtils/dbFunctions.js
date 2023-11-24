@@ -12,10 +12,22 @@ const modelMapper = new Map([
   ['hide', Hide],
 ]);
 
+/**
+ * Error printer function
+ * @param operation HTTP method name
+ * @param modelName data model name
+ * @param err error object
+ */
 function errorPrinter(operation, modelName, err) {
   process.stdout.write(`Error ${operation} ${modelName}: ${err}\n`);
 }
 
+/**
+ * Get one object by id
+ * @param modelName data model name
+ * @param id object id
+ * @returns {Promise<*>} object
+ */
 async function getOneObjectById(modelName, id) {
   try {
     return await modelMapper.get(modelName).findById(id);
@@ -25,6 +37,12 @@ async function getOneObjectById(modelName, id) {
   }
 }
 
+/**
+ * Insert one object
+ * @param modelName data model name
+ * @param object object to be inserted
+ * @returns {Promise<*>} inserted object
+ */
 async function insertOneObject(modelName, object) {
   try {
     return await modelMapper.get(modelName).create(object);
@@ -34,6 +52,13 @@ async function insertOneObject(modelName, object) {
   }
 }
 
+/**
+ * Update one object by id
+ * @param modelName data model name
+ * @param id object id
+ * @param update update object
+ * @returns {Promise<*>} updated object
+ */
 async function updateOneObjectById(modelName, id, update) {
   try {
     return await modelMapper.get(modelName).updateOne({ _id: id }, update);
@@ -43,6 +68,12 @@ async function updateOneObjectById(modelName, id, update) {
   }
 }
 
+/**
+ * Delete one object by id
+ * @param modelName data model name
+ * @param id object id
+ * @returns {Promise<*>} mongoose delete result
+ */
 async function deleteOneObjectById(modelName, id) {
   try {
     return await modelMapper.get(modelName).deleteOne({ _id: id });
@@ -52,6 +83,12 @@ async function deleteOneObjectById(modelName, id) {
   }
 }
 
+/**
+ * Delete many objects by query
+ * @param modelName data model name
+ * @param query query object
+ * @returns {Promise<*>} mongoose delete result
+ */
 async function deleteManyObjectsByQuery(modelName, query) {
   try {
     return await modelMapper.get(modelName).deleteMany(query);
@@ -61,6 +98,11 @@ async function deleteManyObjectsByQuery(modelName, query) {
   }
 }
 
+/**
+ * Get all objects
+ * @param modelName data model name
+ * @returns {Promise<*>} array of objects
+ */
 async function getAllObjects(modelName) {
   try {
     return await modelMapper.get(modelName).find();
@@ -70,6 +112,11 @@ async function getAllObjects(modelName) {
   }
 }
 
+/**
+ * Delete all objects
+ * @param modelName data model name
+ * @returns {Promise<*>} mongoose delete result
+ */
 async function deleteAllObjects(modelName) {
   try {
     return await modelMapper.get(modelName).deleteMany();
@@ -79,6 +126,12 @@ async function deleteAllObjects(modelName) {
   }
 }
 
+/**
+ * Get one object by query
+ * @param modelName data model name
+ * @param query query object
+ * @returns {Promise<*>} object
+ */
 async function getOneObjectByQuery(modelName, query) {
   try {
     return await modelMapper.get(modelName).findOne(query);
@@ -88,6 +141,12 @@ async function getOneObjectByQuery(modelName, query) {
   }
 }
 
+/**
+ * Get many objects by query
+ * @param modelName data model name
+ * @param query query object
+ * @returns {Promise<*>} array of objects
+ */
 async function getManyObjectsByQuery(modelName, query) {
   try {
     return await modelMapper.get(modelName).find(query);
@@ -97,6 +156,14 @@ async function getManyObjectsByQuery(modelName, query) {
   }
 }
 
+/**
+ * Update one field by id
+ * @param modelName data model name
+ * @param id object id
+ * @param field field name
+ * @param value field value
+ * @returns {Promise<*>} mongoose update result
+ */
 async function updateOneFieldById(modelName, id, field, value) {
   try {
     return await modelMapper.get(modelName).updateOne({ _id: id }, { [field]: value });
@@ -106,6 +173,13 @@ async function updateOneFieldById(modelName, id, field, value) {
   }
 }
 
+/**
+ * Increase one field by id
+ * @param modelName data model name
+ * @param id object id
+ * @param field field name
+ * @returns {Promise<*>} mongoose update result
+ */
 async function increaseOneFieldById(modelName, id, field) {
   try {
     return await modelMapper.get(modelName).updateOne({ _id: id }, { $inc: { [field]: 1 } });
@@ -115,6 +189,13 @@ async function increaseOneFieldById(modelName, id, field) {
   }
 }
 
+/**
+ * Decrease one field by id
+ * @param modelName data model name
+ * @param id object id
+ * @param field field name
+ * @returns {Promise<*>} mongoose update result
+ */
 async function decreaseOneFieldById(modelName, id, field) {
   try {
     return await modelMapper.get(modelName).findByIdAndUpdate(id, { $inc: { [field]: -1 } });
@@ -124,6 +205,12 @@ async function decreaseOneFieldById(modelName, id, field) {
   }
 }
 
+/**
+ * Check one object exist by id
+ * @param modelName data model name
+ * @param id object id
+ * @returns {Promise<*>} mongoose exists result
+ */
 async function checkOneObjectExistById(modelName, id) {
   try {
     return await modelMapper.get(modelName).exists({ _id: id });
@@ -133,6 +220,12 @@ async function checkOneObjectExistById(modelName, id) {
   }
 }
 
+/**
+ * Check one object exist by query
+ * @param modelName data model name
+ * @param query query object
+ * @returns {Promise<*>} mongoose query result
+ */
 async function checkOneObjectExistByQuery(modelName, query) {
   try {
     return await modelMapper.get(modelName).exists(query);
@@ -142,6 +235,11 @@ async function checkOneObjectExistByQuery(modelName, query) {
   }
 }
 
+/**
+ * Get one random object
+ * @param modelName data model name
+ * @returns {Promise<*>} object
+ */
 async function getOneRandomObject(modelName) {
   try {
     const count = await modelMapper.get(modelName).countDocuments();

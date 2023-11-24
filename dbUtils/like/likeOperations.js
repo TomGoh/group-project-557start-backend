@@ -1,30 +1,61 @@
 const { deleteCache } = require('../../utils/redisMaintenance');
 const dbFunctions = require('../dbFunctions');
 
+/**
+ * Get like by id
+ * @param likeId like id
+ * @returns {Promise<*>}  like object
+ */
 async function getLikeById(likeId) {
   return dbFunctions.getOneObjectById('like', likeId);
 }
 
+/**
+ * Get likes of a post by post id
+ * @param postId post id
+ * @returns {Promise<*>} array of like objects
+ */
 async function getLikeByPostId(postId) {
   return dbFunctions.getManyObjectsByQuery('like', { postID: postId });
 }
 
+/**
+ * Get likes of a user by user id
+ * @param userId user id
+ * @returns {Promise<*>} array of like objects
+ */
 async function getLikeByUserId(userId) {
   return dbFunctions.getManyObjectsByQuery('like', { userID: userId });
 }
 
+/**
+ * Get like of a post by post id and userid of the user who liked it
+ * @param postId post id
+ * @param userId user id
+ * @returns {Promise<*>} like object
+ */
 async function getLikeByPostIdAndUserId(postId, userId) {
-  return dbFunctions.getManyObjectsByQuery('like', { postID: postId, userID: userId });
+  return await dbFunctions.getManyObjectsByQuery('like', { postID: postId, userID: userId });
 }
 
+/**
+ * Create a like
+ * @param like like object
+ * @returns {Promise<*>} like object
+ */
 async function createOneLike(like) {
   const post = await dbFunctions.getOneObjectById('post', like.postID);
   await deleteCache(`post:${post.userID}`);
   await deleteCache(`post:${like.userID}`);
   await deleteCache(`post:${like.postID}`);
-  return dbFunctions.insertOneObject('like', like) && dbFunctions.increaseOneFieldById('post', like.postID, 'likeCount');
+  return await dbFunctions.insertOneObject('like', like) && dbFunctions.increaseOneFieldById('post', like.postID, 'likeCount');
 }
 
+/**
+ * Delete a like by id
+ * @param likeId like id
+ * @returns {Promise<*|string>} true if successful, error message or false if not
+ */
 async function deleteOneLikeById(likeId) {
   const result = await dbFunctions.checkOneObjectExistByQuery('like', { _id: likeId });
   if (result != null) {
@@ -42,6 +73,12 @@ async function deleteOneLikeById(likeId) {
   return "like doesn't exist";
 }
 
+/**
+ * Delete a like by user id and post id
+ * @param userId user id
+ * @param postId post id
+ * @returns {Promise<*|string>} true if successful, error message or false if not
+ */
 async function deleteOneLikeByUserIdAndPostId(userId, postId) {
   const result = await dbFunctions.checkOneObjectExistByQuery('like', { userID: userId, postID: postId });
   if (result != null) {

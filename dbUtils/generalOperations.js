@@ -4,14 +4,30 @@ const redisFactory = require('../utils/redisFactory');
 
 dotenv.config();
 
+/**
+ * Get user information after login by email
+ * @param email email of the user
+ * @returns {Promise<*>} user information
+ */
 async function userLogin(email) {
   return getOneObjectByQuery('login', { email });
 }
 
+/**
+ * Insert user information after sign up
+ * @param email email of the user
+ * @param password password of the user
+ * @returns {Promise<*>} inserted user information
+ */
 async function userSignUp(email, password) {
   return insertOneObject('login', { email, password });
 }
 
+/**
+ * Check if the user is locked when login failed
+ * @param email email of the user
+ * @returns {Promise<boolean>} true if the user is locked, false otherwise
+ */
 async function loginLock(email) {
   const redisClient = await redisFactory.getClient();
   const badAttempt = await redisClient.get(`attempd:${email}`);

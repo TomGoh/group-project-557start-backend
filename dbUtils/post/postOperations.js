@@ -1,6 +1,11 @@
 const { deleteCache, setCache, getCache } = require('../../utils/redisMaintenance');
 const dbFunctions = require('../dbFunctions');
 
+/**
+ * Get a post by its id
+ * @param postId post id
+ * @returns {Promise<*>} post object
+ */
 async function getPostByPostId(postId) {
   const cachedPost = await getCache(`post:${postId}`);
   if (cachedPost) {
@@ -11,10 +16,19 @@ async function getPostByPostId(postId) {
   return response;
 }
 
+/**
+ * Get all posts
+ * @returns {Promise<*>} array of post objects
+ */
 async function getAllPosts() {
-  return dbFunctions.getAllObjects('post');
+  return await dbFunctions.getAllObjects('post');
 }
 
+/**
+ * Get all posts of a user by user id
+ * @param userId user id
+ * @returns {Promise<*>} array of post objects
+ */
 async function getPostsByUserId(userId) {
   const cachedPosts = await getCache(`post:${userId}`);
   if (cachedPosts) {
@@ -25,14 +39,28 @@ async function getPostsByUserId(userId) {
   return response;
 }
 
+/**
+ * Get one random post
+ * @returns {Promise<*>} post object
+ */
 async function getOneRandomPost() {
-  return dbFunctions.getOneRandomObject('post');
+  return await dbFunctions.getOneRandomObject('post');
 }
 
+/**
+ * Create a post
+ * @param post post object
+ * @returns {Promise<*>} post object
+ */
 async function createOnePost(post) {
-  return dbFunctions.insertOneObject('post', post);
+  return await dbFunctions.insertOneObject('post', post);
 }
 
+/**
+ * Delete a post by its id
+ * @param postId post id
+ * @returns {Promise<*|string>} success message or error message
+ */
 async function deleteOnePostById(postId) {
   const post = await dbFunctions.getOneObjectById('post', postId);
   if (post == null) {
@@ -45,6 +73,12 @@ async function deleteOnePostById(postId) {
   return dbFunctions.deleteOneObjectById('post', postId);
 }
 
+/**
+ * Update the like count of a post
+ * @param postId post id
+ * @param likeCount new like count
+ * @returns {Promise<*>} post object
+ */
 async function updateOnePostLikeCount(postId, likeCount) {
   await deleteCache(`post:${postId}`);
   const post = await dbFunctions.getOneObjectById('post', postId);
@@ -52,6 +86,12 @@ async function updateOnePostLikeCount(postId, likeCount) {
   return dbFunctions.updateOneFieldById('post', postId, 'likeCount', likeCount);
 }
 
+/**
+ * Update a post by its id
+ * @param postId post id
+ * @param post post object
+ * @returns {Promise<*>} post object
+ */
 async function updateOnePostById(postId, post) {
   await deleteCache(`post:${postId}`);
   await deleteCache(`post:${post.userID}`);
