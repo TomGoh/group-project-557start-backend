@@ -30,7 +30,7 @@ async function getUserByUserId(userId) {
  * @returns {Promise<*>} user object
  */
 async function getUserByEmail(email) {
-  return await dbFunctions.getOneObjectByQuery('user', { email });
+  return dbFunctions.getOneObjectByQuery('user', { email });
 }
 
 /**
@@ -39,7 +39,7 @@ async function getUserByEmail(email) {
  * @returns {Promise<*>} user object
  */
 async function getUserByUserName(userName) {
-  return await dbFunctions.getOneObjectByQuery('user', { userName });
+  return dbFunctions.getOneObjectByQuery('user', { userName });
 }
 
 /**
@@ -63,17 +63,6 @@ async function deleteOneUserById(userId) {
   await deleteCache(`comment:${userId}`);
   await deleteCache(`hide:${userId}`);
   return dbFunctions.deleteOneObjectById('user', userId);
-}
-
-/**
- * Update user motto
- * @param userId user id
- * @param userMotto user motto
- * @returns {Promise<*>} updated user
- */
-async function updateUserMotto(userId, userMotto) {
-  await deleteCache(`user:${userId}`);
-  return dbFunctions.updateOneFieldById('user', userId, 'userMotto', userMotto);
 }
 
 /**
@@ -102,7 +91,24 @@ async function checkUsernameExistence(userName) {
  * @returns {Promise<*>} array of users
  */
 async function getUserBybUserNameLike(startWith) {
-  return await dbFunctions.getManyObjectsByQuery('user', { userName: { $regex: `^${startWith}`, $options: 'i' } });
+  return dbFunctions.getManyObjectsByQuery('user', { userName: { $regex: `^${startWith}`, $options: 'i' } });
+}
+
+/**
+ * Update one user by userId
+ * @param {*} userId user id
+ * @param {*} update an user object used to update
+ * @returns updated user object
+ */
+async function updateOneUserById(userId, update) {
+  await deleteCache(`user:${userId}`);
+  await deleteCache(`post:${userId}`);
+  await deleteCache(`following:${userId}`);
+  const oldUser = await getUserByUserId(userId);
+  if (oldUser === null) {
+    return 'user not found';
+  }
+  return dbFunctions.updateOneObjectById('user', userId, update);
 }
 
 module.exports = {
@@ -111,9 +117,9 @@ module.exports = {
   getUserByEmail,
   createOneUser,
   deleteOneUserById,
-  updateUserMotto,
   checkEmailExistence,
   checkUsernameExistence,
   getUserByUserName,
   getUserBybUserNameLike,
+  updateOneUserById,
 };

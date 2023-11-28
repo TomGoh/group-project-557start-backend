@@ -29,9 +29,6 @@ app.use(urlencoded({
 app.use(json({ limit: '10mb' }));
 app.use(cookieParser());
 
-app.listen(port, () => {
-	process.stdout.write(`Server listening at http://localhost:${port}\n`);
-});
 app.use(tokenAuthenticator);
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
@@ -44,4 +41,8 @@ app.use('/api/blob', blobRouter);
 app.use('/api/logout', logoutRouter);
 app.use('/api/hide', hideRouter);
 
-module.exports = app;
+const appServer = app.listen(port, () => {
+	process.stdout.write(`Server listening at http://localhost:${port}\n`);
+});
+
+module.exports = appServer;

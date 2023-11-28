@@ -76,7 +76,7 @@ postRouter.patch('/:id', async (req, res) => {
       return res.json({ error: 'Post does not exist' });
     }
     const updatedPost = {
-      ...post,
+      ...post._doc,
       ...patchData,
     };
     const result = await updateOnePostById(req.params.id, updatedPost);

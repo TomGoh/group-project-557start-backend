@@ -21,7 +21,7 @@ async function getPostByPostId(postId) {
  * @returns {Promise<*>} array of post objects
  */
 async function getAllPosts() {
-  return await dbFunctions.getAllObjects('post');
+  return dbFunctions.getAllObjects('post');
 }
 
 /**
@@ -44,7 +44,7 @@ async function getPostsByUserId(userId) {
  * @returns {Promise<*>} post object
  */
 async function getOneRandomPost() {
-  return await dbFunctions.getOneRandomObject('post');
+  return dbFunctions.getOneRandomObject('post');
 }
 
 /**
@@ -53,7 +53,14 @@ async function getOneRandomPost() {
  * @returns {Promise<*>} post object
  */
 async function createOnePost(post) {
-  return await dbFunctions.insertOneObject('post', post);
+  const postCreation = await dbFunctions.insertOneObject('post', post);
+  const userInforUpdate = await dbFunctions.increaseOneFieldById('user', post.userID, 'postCount', 1);
+  await deleteCache(`post:${post.userID}`);
+  await deleteCache(`user:${post.userID}`);
+  if (postCreation && userInforUpdate) {
+    return postCreation;
+  }
+  return null;
 }
 
 /**
@@ -70,7 +77,13 @@ async function deleteOnePostById(postId) {
   await deleteCache(`post:${post.userID}`);
   await deleteCache(`comment:${postId}`);
   await deleteCache(`hide:${postId}`);
-  return dbFunctions.deleteOneObjectById('post', postId);
+  await deleteCache(`user:${post.userID}`);
+  const deleteResult = dbFunctions.deleteOneObjectById('post', postId);
+  const userInforUpdate = dbFunctions.decreaseOneFieldById('user', post.userID, 'postCount');
+  if (deleteResult && userInforUpdate) {
+    return deleteResult;
+  }
+  return 'delete failed';
 }
 
 /**

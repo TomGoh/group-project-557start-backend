@@ -2,6 +2,14 @@ const { deleteCache } = require('../../utils/redisMaintenance');
 const dbFunctions = require('../dbFunctions');
 
 /**
+ * Get all likes
+ * @returns An array of all likes
+ */
+async function getAllLikes() {
+  return dbFunctions.getAllObjects('like');
+}
+
+/**
  * Get like by id
  * @param likeId like id
  * @returns {Promise<*>}  like object
@@ -35,7 +43,7 @@ async function getLikeByUserId(userId) {
  * @returns {Promise<*>} like object
  */
 async function getLikeByPostIdAndUserId(postId, userId) {
-  return await dbFunctions.getManyObjectsByQuery('like', { postID: postId, userID: userId });
+  return dbFunctions.getManyObjectsByQuery('like', { postID: postId, userID: userId });
 }
 
 /**
@@ -48,7 +56,12 @@ async function createOneLike(like) {
   await deleteCache(`post:${post.userID}`);
   await deleteCache(`post:${like.userID}`);
   await deleteCache(`post:${like.postID}`);
-  return await dbFunctions.insertOneObject('like', like) && dbFunctions.increaseOneFieldById('post', like.postID, 'likeCount');
+  const likeCreation = await dbFunctions.insertOneObject('like', like);
+  const likeCountResult = await dbFunctions.increaseOneFieldById('post', like.postID, 'likeCount', 1);
+  if (likeCreation && likeCountResult) {
+    return likeCreation;
+  }
+  return 'like creation failed';
 }
 
 /**
@@ -98,6 +111,7 @@ async function deleteOneLikeByUserIdAndPostId(userId, postId) {
 
 module.exports = {
   getLikeById,
+  getAllLikes,
   getLikeByPostId,
   getLikeByUserId,
   getLikeByPostIdAndUserId,

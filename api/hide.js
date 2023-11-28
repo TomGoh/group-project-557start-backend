@@ -39,4 +39,20 @@ hideRouter.post('/', async (req, res) => {
   return res.json(response);
 });
 
+hideRouter.delete('/', async (req, res) => {
+  methodLogging('DELETE', req);
+  const { userID, postID } = req.body;
+  if (!userID || !postID) {
+    return res.json({ error: 'Missing userID or postID parameter' });
+  }
+  const response = await hideOperations.deleteOneHideByUserIdAndPostId(userID, postID);
+  return res.json(response);
+});
+
+hideRouter.delete('/:id', async (req, res) => {
+  methodLogging('DELETE', req);
+  const response = await hideOperations.deleteOneHideById(req.params.id);
+  return res.json(response);
+});
+
 module.exports = { hideRouter };

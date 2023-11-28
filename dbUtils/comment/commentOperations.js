@@ -56,7 +56,7 @@ async function getCommentsByUserIdAndPostId(userId, postId) {
  * @returns {Promise<*>} array of comments
  */
 async function getCommentsByUserId(userId) {
-  return await dbFunctions.getManyObjectsByQuery('comment', { userID: userId });
+  return dbFunctions.getManyObjectsByQuery('comment', { userID: userId });
 }
 
 /**
@@ -68,9 +68,21 @@ async function createOneComment(comment) {
   await deleteCache(`comment:${comment.postID}`);
   await deleteCache(`post:${comment.postID}`);
   const post = await dbFunctions.getOneObjectById('post', comment.postID);
+  if (post === null) {
+    return "post doesn't exist";
+  }
+  const user = await dbFunctions.getOneObjectById('user', comment.userID);
+  if (user === null) {
+    return "user doesn't exist";
+  }
   await deleteCache(`comment:${comment.userID}`);
   await deleteCache(`post:${post.userID}`);
-  return await dbFunctions.insertOneObject('comment', comment) && dbFunctions.increaseOneFieldById('post', comment.postID, 'commentCount');
+  const commentCreation = await dbFunctions.insertOneObject('comment', { ...comment, userName: user.userName });
+  const commentCountResult = await dbFunctions.increaseOneFieldById('post', comment.postID, 'commentCount');
+  if (commentCreation && commentCountResult) {
+    return commentCreation;
+  }
+  return 'comment creation failed';
 }
 
 /**

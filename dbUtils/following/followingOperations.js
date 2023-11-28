@@ -39,7 +39,7 @@ async function getFollowingBySourceId(sourceId) {
  * @returns {Promise<*>} array of followings
  */
 async function getFollowerByTargetId(targetId) {
-  return await dbFunctions.getManyObjectsByQuery('following', { targetID: targetId });
+  return dbFunctions.getManyObjectsByQuery('following', { followingID: targetId });
 }
 
 /**
@@ -54,7 +54,7 @@ async function getFollowingByFollowerIDAndFollowingID(followerID, followingID) {
     return cachedFollowings
       .filter((following) => following.followingID === followingID);
   }
-  return await dbFunctions.getManyObjectsByQuery('following', { followerID, followingID });
+  return dbFunctions.getManyObjectsByQuery('following', { followerID, followingID });
 }
 
 /**
@@ -72,14 +72,19 @@ async function createOneFollowing(following) {
   await deleteCache(`user:${following.followerID}`);
   await deleteCache(`user:${following.followingID}`);
   await deleteCache(`following:${following.followerID}`);
-  return followingResult && followingCountResult && followerCountResult;
+  if (followingResult && followingCountResult && followerCountResult) {
+    return followingResult;
+  }
+  return false;
 }
 
 /**
- * Delete one following by the userId of both the user who is following others and the user who is being followed
+ * Delete one following by the userId of both
+ * the user who is following others and the user who is being followed
  * @param followerID  the userId of the user who is following others
  * @param followingID the userId of the user who is being followed
- * @returns {Promise<*|string>} true if success, false if failed, "following doesn't exist" if following doesn't exist
+ * @returns {Promise<*|string>} true if success, false if failed,
+ * "following doesn't exist" if following doesn't exist
  */
 async function deleteOneFollowingByFollowerIDAndFollowingID(followerID, followingID) {
   const result = await dbFunctions.getOneObjectByQuery('following', { followerID, followingID });
@@ -100,11 +105,12 @@ async function deleteOneFollowingByFollowerIDAndFollowingID(followerID, followin
 /**
  * Delete one following by followingId
  * @param followingId following id
- * @returns {Promise<*|string>} true if success, false if failed, "following doesn't exist" if following doesn't exist
+ * @returns {Promise<*|string>} true if success, false if failed,
+ * "following doesn't exist" if following doesn't exist
  */
 async function deleteOneFollowingById(followingId) {
-  const result = await dbFunctions.checkOneObjectExistByQuery('following', { _id: followingId });
-  if (result != null) {
+  const result = await dbFunctions.getOneObjectById('following', followingId);
+  if (result._id != null) {
     const followingRemoval = await dbFunctions.deleteOneObjectById('following', result._id);
     const followingCountResult = await dbFunctions.decreaseOneFieldById('user', result.followerID, 'followingCount');
     const followerCountResult = await dbFunctions.decreaseOneFieldById('user', result.followingID, 'followerCount');
