@@ -47,7 +47,7 @@ postRouter.post('/', async (req, res) => {
     const post = req.body;
     if (post.userName === undefined) {
       const user = await getUserByUserId(post.userID);
-      post.userName = user[0].userName;
+      post.userName = user.userName;
     }
     const result = await createOnePost(post);
     res.json(result);
