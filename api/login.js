@@ -23,7 +23,7 @@ loginRouter.post('/', async (req, res) => {
     }
     const lock = await generalOperations.loginLock(email);
     if (lock) {
-      return res.json({ error: 'Account Locked. Please try again after 10 minutes.' });
+      return res.json({ error: 'Account Locked. Please try again after 5 minutes.' });
     }
     return res.json({ error: 'Incorrect Email or Password' });
   } catch (err) {

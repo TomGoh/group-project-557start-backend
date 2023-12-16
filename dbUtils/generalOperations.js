@@ -34,7 +34,7 @@ async function loginLock(email) {
   const threshold = process.env.LOGIN_ATTEMPT_THRESHOLD || 5;
   if (badAttempt === null) {
     await redisClient.set(`attempd:${email}`, 1);
-    await redisClient.expire(`attempd:${email}`, 600);
+    await redisClient.expire(`attempd:${email}`, 300);
     return false;
   }
   if (badAttempt >= threshold) {
@@ -43,11 +43,11 @@ async function loginLock(email) {
       return true;
     }
     await redisClient.set(`locked:${email}`, 'true');
-    await redisClient.expire(`locked:${email}`, 600);
+    await redisClient.expire(`locked:${email}`, 300);
     return true;
   }
   await redisClient.incr(`attempd:${email}`);
-  await redisClient.expire(`attempd:${email}`, 600);
+  await redisClient.expire(`attempd:${email}`, 300);
   return false;
 }
 
