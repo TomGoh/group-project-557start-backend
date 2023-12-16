@@ -9,9 +9,7 @@ dotenv.config();
  * @param hash user password hash
  * @returns {Promise<void|*>} true if password is correct, false otherwise
  */
-const verifyPassword = async (password, hash) => {
-  return await bcrypt.compare(password, hash);
-};
+const verifyPassword = async (password, hash) => bcrypt.compare(password, hash);
 
 /**
  * Encrypts the password when user is created to create a hash.
@@ -20,7 +18,7 @@ const verifyPassword = async (password, hash) => {
  */
 const encryptPassword = async (password) => {
   const saltRounds = parseInt(process.env.ENCRYPT_SALT_LENGTH, 10);
-  return await bcrypt.hash(password, saltRounds);
+  return bcrypt.hash(password, saltRounds);
 };
 
 module.exports = { verifyPassword, encryptPassword };

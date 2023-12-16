@@ -16,7 +16,7 @@ loginRouter.post('/', async (req, res) => {
       return res.json({ error: 'invalid input' });
     }
     const loginData = await generalOperations.userLogin(email);
-    if (loginData && verifyPassword(password, loginData.password)) {
+    if (loginData && await verifyPassword(password, loginData.password)) {
       const profile = await getUserByEmail(email);
       const token = tokenManager.generateToken(profile);
       return res.json({ ...profile._doc, accessToken: token });
