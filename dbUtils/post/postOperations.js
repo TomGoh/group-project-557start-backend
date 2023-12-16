@@ -39,6 +39,11 @@ async function getPostsByUserId(userId) {
   return response;
 }
 
+async function getUsersPosts(userIDs, page = 1, size = 60) {
+  const response = await dbFunctions.getPaginatedObjects('post', { userID: { $in: userIDs } }, page, size);
+  return response;
+}
+
 /**
  * Get one random post
  * @returns {Promise<*>} post object
@@ -112,6 +117,7 @@ async function updateOnePostById(postId, post) {
 }
 
 module.exports = {
+  getUsersPosts,
   getPostByPostId,
   getAllPosts,
   getPostsByUserId,

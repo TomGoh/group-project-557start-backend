@@ -1,12 +1,24 @@
 const express = require('express');
+const { getAllFollowingsByUser } = require('../dbUtils/following/followingOperations');
+
 const { methodLogging, logger } = require('../utils/logger');
 const { getUserByUserId } = require('../dbUtils/user/userOperations');
 const {
   getPostsByUserId, getAllPosts, getPostByPostId,
-  createOnePost, deleteOnePostById, updateOnePostById,
+  createOnePost, deleteOnePostById, updateOnePostById, getUsersPosts,
 } = require('../dbUtils/post/postOperations');
 
 const postRouter = express.Router();
+
+postRouter.get('/all', async (req, res) => {
+  methodLogging('GET', req);
+  const { userid, page = 1, size = 60 } = req.query;
+  const followings = await getAllFollowingsByUser(userid);
+  const ids = [userid, ...followings.map((item) => item.followingID)];
+  const result = await getUsersPosts(ids, page, size);
+  return res.json(result);
+});
+
 postRouter.get('/', async (req, res) => {
   methodLogging('GET', req);
   try {

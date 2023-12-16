@@ -19,9 +19,8 @@ async function tokenAuthenticator(req, res, next) {
 	if (pathException.includes(req.path)) {
 		return next();
 	}
-	if (req.headers.cookie) {
-		const { cookie } = req.headers;
-		const accessToken = cookie.split('=')[1];
+	if (req.headers.authorization) {
+		const accessToken = req.headers.authorization;
 		if (!accessToken) {
 			logger.error('missing token');
 			return res.status(401).json({ error: 'missing token' });

@@ -156,6 +156,28 @@ async function getManyObjectsByQuery(modelName, query) {
   }
 }
 
+async function getPaginatedObjects(modelName, query, page = 1, limit = 60) {
+  try {
+    // Calculate the number of documents to skip
+    const skip = (page - 1) * limit;
+
+    // Get the model based on the modelName
+    const model = modelMapper.get(modelName);
+
+    // Find the documents with pagination
+    const data = await model.find(query).skip(skip).limit(limit);
+
+    // Count the total number of documents matching the query
+    const total = await model.countDocuments(query);
+
+    // Return the paginated data and total count
+    return { data, total };
+  } catch (err) {
+    errorPrinter('getting many by query', modelName, err);
+    throw new Error(err);
+  }
+}
+
 /**
  * Update one field by id
  * @param modelName data model name
@@ -209,7 +231,7 @@ async function decreaseOneFieldById(modelName, id, field) {
  * Check one object exist by id
  * @param modelName data model name
  * @param id object id
- * @returns {Promise<*>} mongoose exists result
+ *getPaginatedObjects @returns {Promise<*>} mongoose exists result
  */
 async function checkOneObjectExistById(modelName, id) {
   try {
@@ -252,6 +274,7 @@ async function getOneRandomObject(modelName) {
 }
 
 module.exports = {
+  getPaginatedObjects,
   getOneObjectById,
   insertOneObject,
   updateOneObjectById,

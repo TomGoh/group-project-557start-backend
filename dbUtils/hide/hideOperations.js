@@ -16,6 +16,11 @@ async function getHideById(hideId) {
   return response;
 }
 
+async function getPostHide(postID, userID) {
+  const response = await dbFunctions.getOneObjectByQuery('hide', { userID, postID });
+  return response;
+}
+
 /**
  * Get all hides of a user
  * @param userId user id
@@ -79,6 +84,7 @@ async function deleteOneHideByUserIdAndPostId(userId, postId) {
 }
 
 module.exports = {
+  getPostHide,
   getHideById,
   getHidesByUserId,
   createOneHide,

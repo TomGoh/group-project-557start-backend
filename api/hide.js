@@ -2,6 +2,7 @@ const express = require('express');
 const { methodLogging } = require('../utils/logger');
 const hideOperations = require('../dbUtils/hide/hideOperations');
 const postOperations = require('../dbUtils/post/postOperations');
+const { getUserByUserId } = require('../dbUtils/user/userOperations');
 
 const hideRouter = express.Router();
 
@@ -18,6 +19,27 @@ hideRouter.get('/', async (req, res) => {
     return res.json(response);
   }
     return res.json({ error: 'Missing userID parameter' });
+});
+
+hideRouter.get('/post', async (req, res) => {
+  methodLogging('GET', req);
+  const { userID, postID } = req.query;
+  const hide = await hideOperations.getPostHide(postID, userID);
+  return res.json(hide);
+});
+
+hideRouter.put('/post', async (req, res) => {
+  methodLogging('GET', req);
+  const { userId, postId, hide } = req.body.params;
+  const user = await getUserByUserId(userId);
+  const post = await postOperations.getPostByPostId(postId);
+  const h = await hideOperations.getPostHide(postId, userId);
+  if (hide && !h) {
+    await hideOperations.createOneHide({ userID: user._id, postID: post._id });
+  } else if (!hide && h) {
+    await hideOperations.deleteOneHideByUserIdAndPostId(userId, postId);
+  }
+  return res.json(hide);
 });
 
 hideRouter.post('/', async (req, res) => {

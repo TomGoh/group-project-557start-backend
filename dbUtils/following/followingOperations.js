@@ -9,6 +9,10 @@ async function getAllFollowings() {
   return dbFunctions.getAllObjects('following');
 }
 
+async function getAllFollowingsByUser(userID) {
+  return dbFunctions.getManyObjectsByQuery('following', { followerID: userID });
+}
+
 /**
  * Get following by id
  * @param followingId following id
@@ -125,6 +129,7 @@ async function deleteOneFollowingById(followingId) {
 }
 
 module.exports = {
+  getAllFollowingsByUser,
   getAllFollowings,
   getFollowingById,
   getFollowingBySourceId,
