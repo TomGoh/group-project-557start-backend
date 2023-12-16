@@ -15,16 +15,17 @@ loginRouter.post('/', async (req, res) => {
     if (!email || !password) {
       return res.json({ error: 'invalid input' });
     }
+    const lockedCheck = await generalOperations.checkLocked(email);
+    if (lockedCheck) {
+      return res.json({ error: 'Account Locked. Please try again after 5 minutes.' });
+    }
     const loginData = await generalOperations.userLogin(email);
     if (loginData && await verifyPassword(password, loginData.password)) {
       const profile = await getUserByEmail(email);
       const token = tokenManager.generateToken(profile);
       return res.json({ ...profile._doc, accessToken: token });
     }
-    const lock = await generalOperations.loginLock(email);
-    if (lock) {
-      return res.json({ error: 'Account Locked. Please try again after 5 minutes.' });
-    }
+    await generalOperations.loginLock(email);
     return res.json({ error: 'Incorrect Email or Password' });
   } catch (err) {
     logger.error(err.toString());

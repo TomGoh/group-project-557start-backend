@@ -32,12 +32,12 @@ async function loginLock(email) {
   const redisClient = await redisFactory.getClient();
   const badAttempt = await redisClient.get(`attempd:${email}`);
   const threshold = process.env.LOGIN_ATTEMPT_THRESHOLD || 5;
-  if (badAttempt === null) {
+  if (badAttempt === null || badAttempt === undefined) {
     await redisClient.set(`attempd:${email}`, 1);
     await redisClient.expire(`attempd:${email}`, 300);
     return false;
   }
-  if (badAttempt >= threshold) {
+  if (badAttempt >= threshold - 1) {
     const locked = await redisClient.get(`locked:${email}`);
     if (locked === 'true') {
       return true;
@@ -51,8 +51,20 @@ async function loginLock(email) {
   return false;
 }
 
+/**
+ * Check if the user account is locked
+ * @param email email of the user
+ * @returns True if the user account is locked, false otherwise
+ */
+async function checkLocked(email) {
+  const redisClient = await redisFactory.getClient();
+  const locked = await redisClient.get(`locked:${email}`);
+  return locked === 'true';
+}
+
 module.exports = {
   userLogin,
   userSignUp,
   loginLock,
+  checkLocked,
 };
