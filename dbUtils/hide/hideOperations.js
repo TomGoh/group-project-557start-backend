@@ -31,6 +31,12 @@ async function getHidesByUserId(userId) {
   return response;
 }
 
+/**
+ * Check whether a user has hidden a post
+ * @param {*} userId user id
+ * @param {*} postId id of the post to be checked
+ * @returns True if the user has hidden the post, false otherwise
+ */
 async function checkHideByUserIdAndPostId(userId, postId) {
   const cahcedHides = await getCache(`hide:${userId}`);
   if (cahcedHides) {
