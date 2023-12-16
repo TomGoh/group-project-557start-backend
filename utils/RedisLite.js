@@ -31,16 +31,16 @@ const redisLite = {
 
   expire(key, seconds) {
     setTimeout(() => {
-      this.delete(key);
+      this.dataStore.delete(key);
     }, seconds * 1000);
   },
 
   incr(key) {
     const value = this.get(key);
     if (value) {
-      this.set(key, value + 1);
+      this.dataStore.set(key, value + 1);
     } else {
-      this.set(key, 1);
+      this.dataStore.set(key, 1);
     }
   },
 };
