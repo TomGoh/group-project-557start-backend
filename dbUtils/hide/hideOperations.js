@@ -31,6 +31,16 @@ async function getHidesByUserId(userId) {
   return response;
 }
 
+async function checkHideByUserIdAndPostId(userId, postId) {
+  const cahcedHides = await getCache(`hide:${userId}`);
+  if (cahcedHides) {
+    return cahcedHides.find((h) => h.postID === postId);
+  }
+  const response = await dbFunctions.getManyObjectsByQuery('hide', { userID: userId });
+  await setCache(`hide:${userId}`, response, 1800);
+  return response.find((h) => h.postID === postId);
+}
+
 /**
  * Create a new hide relationship
  * @param hide hide object, should contain userID and postID
@@ -84,4 +94,5 @@ module.exports = {
   createOneHide,
   deleteOneHideById,
   deleteOneHideByUserIdAndPostId,
+  checkHideByUserIdAndPostId,
 };

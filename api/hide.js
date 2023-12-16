@@ -13,7 +13,14 @@ hideRouter.get('/', async (req, res) => {
     const response = await hideOperations.getAllHides();
     return res.json(response);
   }
-  if (userId && !postId) {
+  if (userId && postId) {
+    const response = await hideOperations.checkHideByUserIdAndPostId(userId, postId);
+    if (response) {
+      return res.json({ postID: postId, userID: userId });
+    }
+    return res.json({ error: 'No hide relationship found' });
+  }
+  if (!postId) {
     const response = await hideOperations.getHidesByUserId(userId);
     return res.json(response);
   }
