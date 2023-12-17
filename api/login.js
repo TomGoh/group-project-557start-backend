@@ -23,6 +23,9 @@ loginRouter.post('/', async (req, res) => {
     if (loginData && await verifyPassword(password, loginData.password)) {
       const profile = await getUserByEmail(email);
       const token = tokenManager.generateToken(profile);
+      res.cookie('accessToken', token, {
+        sameSite: 'Lax',
+      });
       return res.json({ ...profile._doc, accessToken: token });
     }
     await generalOperations.loginLock(email);

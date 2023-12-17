@@ -18,6 +18,7 @@ const corsOptions = {
 	origin: 'http://localhost:3000',
 	optionsSuccessStatus: 200,
 	credentials: true,
+	methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 };
 const app = express();
 const port = 8888;
