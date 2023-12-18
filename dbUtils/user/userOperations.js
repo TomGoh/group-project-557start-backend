@@ -68,21 +68,21 @@ async function deleteOneUserById(userId) {
 /**
  * Check if email exists
  * @param email user email
- * @returns {Promise<boolean>} true if email exists
+ * @returns {Promise<boolean>} a json objest containing '_id' if exists, null if not exists.
  */
 async function checkEmailExistence(email) {
   const response = await dbFunctions.checkOneObjectExistByQuery('user', { email });
-  return response.length > 0;
+  return response;
 }
 
 /**
  * Check if username exists
  * @param userName user name
- * @returns {Promise<boolean>} true if username exists
+ * @returns {Promise<boolean>} a json objest containing '_id' if exists, null if not exists.
  */
 async function checkUsernameExistence(userName) {
   const response = await dbFunctions.checkOneObjectExistByQuery('user', { userName });
-  return response.length > 0;
+  return response;
 }
 
 /**
