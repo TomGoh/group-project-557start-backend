@@ -4,8 +4,8 @@
   "description": "Backend of CIS5570 Group Project",
   "main": "index.js",
   "scripts": {
-    "start": "node app.js",
-    "test": "jest --coverage --forceExit",
+    "start": "node server.js",
+    "test": "jest --coverage --watchAll=true",
     "lint": "./node_modules/.bin/eslint"
   },
   "repository": {

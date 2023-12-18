@@ -5,9 +5,12 @@ const {
   getPostsByUserId, getAllPosts, getPostByPostId,
   createOnePost, deleteOnePostById, updateOnePostById,
 } = require('../dbUtils/post/postOperations');
+const {
+  queryValidator, paramValidator, postBodyValidator, deleteParamValidator,
+} = require('../utils/paramValidator');
 
 const postRouter = express.Router();
-postRouter.get('/', async (req, res) => {
+postRouter.get('/', queryValidator, async (req, res) => {
   methodLogging('GET', req);
   try {
     const userid = req.query.userID;
@@ -27,7 +30,7 @@ postRouter.get('/', async (req, res) => {
   }
 });
 
-postRouter.get('/:id', async (req, res) => {
+postRouter.get('/:id', paramValidator, async (req, res) => {
   methodLogging('GET', req);
   if (!req.params.id) {
     return res.json({ error: 'Missing id parameter' });
@@ -41,7 +44,7 @@ postRouter.get('/:id', async (req, res) => {
   }
 });
 
-postRouter.post('/', async (req, res) => {
+postRouter.post('/', postBodyValidator, async (req, res) => {
   methodLogging('POST', req);
   try {
     const post = req.body;
@@ -56,7 +59,7 @@ postRouter.post('/', async (req, res) => {
   }
 });
 
-postRouter.delete('/:id', async (req, res) => {
+postRouter.delete('/:id', paramValidator, deleteParamValidator, async (req, res) => {
   methodLogging('DELETE', req);
   try {
     const result = await deleteOnePostById(req.params.id);
@@ -67,7 +70,7 @@ postRouter.delete('/:id', async (req, res) => {
   }
 });
 
-postRouter.patch('/:id', async (req, res) => {
+postRouter.patch('/:id', paramValidator, postBodyValidator, deleteParamValidator, async (req, res) => {
   methodLogging('PATCH', req);
   try {
     const patchData = req.body;

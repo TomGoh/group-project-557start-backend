@@ -4,8 +4,11 @@ const commentRouter = express.Router();
 const commentOperations = require('../dbUtils/comment/commentOperations');
 const { methodLogging, logger } = require('../utils/logger');
 const { getUserByUserId } = require('../dbUtils/user/userOperations');
+const {
+	paramValidator, commentBodyValidator, queryValidator, deleteParamValidator,
+} = require('../utils/paramValidator');
 
-commentRouter.get('/', async (req, res) => {
+commentRouter.get('/', queryValidator, async (req, res) => {
 	methodLogging('GET', req);
 	try {
 		const userid = req.query.userID;
@@ -30,12 +33,9 @@ commentRouter.get('/', async (req, res) => {
 	}
 });
 
-commentRouter.get('/:id', async (req, res) => {
+commentRouter.get('/:id', paramValidator, async (req, res) => {
 	methodLogging('GET', req);
 	try {
-		if (!req.params.id) {
-			return res.json({ error: 'Missing id parameter' });
-		}
 		const responseData = await commentOperations.getCommentById(req.params.id);
 		return res.json(responseData);
 	} catch (err) {
@@ -44,7 +44,7 @@ commentRouter.get('/:id', async (req, res) => {
 	}
 });
 
-commentRouter.post('/', async (req, res) => {
+commentRouter.post('/', commentBodyValidator, async (req, res) => {
 	methodLogging('POST', req);
 	try {
 		const comment = req.body;
@@ -59,12 +59,13 @@ commentRouter.post('/', async (req, res) => {
 	}
 });
 
-commentRouter.delete('/:id', async (req, res) => {
+commentRouter.delete('/:id', paramValidator, deleteParamValidator, async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
 		const result = await commentOperations.deleteOneCommentById(req.params.id);
 		res.json(result);
 	} catch (err) {
+		logger.error(err.toString());
 		res.json({ error: err.toString() });
 	}
 });

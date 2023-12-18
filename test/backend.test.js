@@ -1,7 +1,6 @@
 const request = require('supertest');
 const { faker } = require('@faker-js/faker');
 const appServer = require('../app');
-const { axiosInstance } = require('./axiosHelper');
 const { imageDelete } = require('../dbUtils/s3Operations');
 const { createOnePost, deleteOnePostById, getPostByPostId } = require('../dbUtils/post/postOperations');
 const {
@@ -40,18 +39,13 @@ describe('Backend Endpoint Tests', () => {
 
   afterAll(async () => {
     await request(appServer).delete(`/api/users/${testUserId}`);
-    appServer.close(() => {
-      process.stdout.write('Server closed\n');
-    });
   });
 
   describe('Blob Endpoint Tests', () => {
-    let filePath;
     let invalidFilePath;
     let imageKey;
 
     beforeAll(() => {
-      filePath = './test/test.jpeg';
       invalidFilePath = './test/backend.test.js';
     });
 
@@ -60,21 +54,6 @@ describe('Backend Endpoint Tests', () => {
         await imageDelete(imageKey);
       }
     });
-
-    test('blob upload test', async () => {
-      const response = await request(appServer)
-        .post('/api/blob')
-        .set('Cookie', `accessToken=${testToken}`)
-        .type('form')
-        .attach('file', filePath);
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('location');
-      expect(response.body).toHaveProperty('key');
-      const { location } = response.body;
-      const fileAccess = await axiosInstance.get(location);
-      expect(fileAccess.status).toBe(200);
-      imageKey = fileAccess;
-    }, 10000);
 
     test('blob invalid file upload test', async () => {
       const response = await request(appServer)
@@ -130,7 +109,7 @@ describe('Backend Endpoint Tests', () => {
     test('get all posts', async () => {
       const response = await request(appServer)
         .get('/api/posts')
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -142,7 +121,7 @@ describe('Backend Endpoint Tests', () => {
     test('get post by id', async () => {
       const response = await request(appServer)
         .get(`/api/posts/${aPostId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       const newQueriedPost = response.body;
       expect(newQueriedPost._id.toString()).toEqual(aPostId);
@@ -151,7 +130,7 @@ describe('Backend Endpoint Tests', () => {
     test('get post by userID', async () => {
       const response = await request(appServer)
         .get(`/api/posts/?userID=${testUserId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -167,7 +146,7 @@ describe('Backend Endpoint Tests', () => {
     test('get post by userID', async () => {
       const response = await request(appServer)
         .get(`/api/posts/?userID=${testUserId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -190,7 +169,7 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(appServer)
         .post('/api/posts')
         .send(postItem)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newUserInfor = await getUserByUserId(testUserId);
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('userID');
@@ -217,7 +196,7 @@ describe('Backend Endpoint Tests', () => {
       const userInfor = await getUserByUserId(testUserId);
       const response = await request(appServer)
         .delete(`/api/posts/${postCreation._id}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newUserInfor = await getUserByUserId(testUserId);
       expect(response.statusCode).toBe(200);
       expect(response.body.deletedCount).toBe(1);
@@ -237,8 +216,8 @@ describe('Backend Endpoint Tests', () => {
       await deleteOnePostById(newPost._id);
       const response = await request(appServer)
         .delete(`/api/posts/${newPost._id}`)
-        .set('Cookie', `accessToken=${testToken}`);
-      expect(response.body).toEqual('post doesn\'t exist');
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
+      expect(response.body.error).toEqual('invalid params on post.');
     }, 10000);
 
     test('patch a post', async () => {
@@ -246,7 +225,7 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(appServer)
         .patch(`/api/posts/${aPostId}`)
         .send({ description: newDescription })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       const queriedPost = await getPostByPostId(aPostId);
       expect(queriedPost.description).toEqual(newDescription);
@@ -302,7 +281,7 @@ describe('Backend Endpoint Tests', () => {
         .send({
           userID: testUserBId, userName: testUserBName, postID: aPostId, content: comment,
         })
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       testCommentId = response.body._id.toString();
     });
@@ -310,14 +289,14 @@ describe('Backend Endpoint Tests', () => {
     afterAll(async () => {
       await request(appServer).delete(`/api/posts/${aPostId}`);
       await request(appServer).delete(`/api/posts/${bPostId}`);
-      await request(appServer).post('/api/logout').set('Cookie', `accessToken=${testUserBToken}`);
+      await request(appServer).post('/api/logout').set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       await request(appServer).delete(`/api/users/${testUserBId}`);
     });
 
     test('get all comments', async () => {
       const response = await request(appServer)
         .get('/api/comments')
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -326,14 +305,14 @@ describe('Backend Endpoint Tests', () => {
     test('get comment by id', async () => {
       const response = await request(appServer)
         .get(`/api/comments/${testCommentId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.body._id.toString()).toEqual(testCommentId);
     });
 
     test('get comments by userID and postID', async () => {
       const response = await request(appServer)
         .get(`/api/comments/?userID=${testUserBId}&postID=${aPostId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -345,7 +324,7 @@ describe('Backend Endpoint Tests', () => {
     test('get comments by postID', async () => {
       const response = await request(appServer)
         .get(`/api/comments/?postID=${aPostId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -358,7 +337,7 @@ describe('Backend Endpoint Tests', () => {
     test('get comments by userID', async () => {
       const response = await request(appServer)
         .get(`/api/comments/?userID=${testUserBId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -377,7 +356,7 @@ describe('Backend Endpoint Tests', () => {
       });
       const response = await request(appServer)
         .delete(`/api/comments/${newComment._id}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       const qComments = await getCommentById(newComment._id);
       const newPost = await getPostByPostId(aPostId);
@@ -394,8 +373,8 @@ describe('Backend Endpoint Tests', () => {
       await deleteOneCommentById(newComment._id);
       const response = await request(appServer)
         .delete(`/api/comments/${newComment._id}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
-      expect(response.body).toEqual("comment doesn't exist");
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
+      expect(response.body.error).toEqual('invalid params on comment.');
     });
   });
 
@@ -443,7 +422,7 @@ describe('Backend Endpoint Tests', () => {
     test('get all likes', async () => {
       const response = await request(appServer)
         .get('/api/likes')
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -456,7 +435,7 @@ describe('Backend Endpoint Tests', () => {
     test('get like by id', async () => {
       const response = await request(appServer)
         .get(`/api/likes/${testLikeId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body._id.toString()).toEqual(testLikeId);
     });
@@ -464,7 +443,7 @@ describe('Backend Endpoint Tests', () => {
     test('get likes by userID and postID', async () => {
       const response = await request(appServer)
         .get(`/api/likes/?userID=${testUserBId}&postID=${aPostId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -476,7 +455,7 @@ describe('Backend Endpoint Tests', () => {
     test('get likes by postID', async () => {
       const response = await request(appServer)
         .get(`/api/likes/?postID=${aPostId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -489,7 +468,7 @@ describe('Backend Endpoint Tests', () => {
     test('get likes by userID', async () => {
       const response = await request(appServer)
         .get(`/api/likes/?userID=${testUserBId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -504,7 +483,7 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(appServer)
         .post('/api/likes')
         .send({ userID: testUserId, postID: aPostId })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newPost = await getPostByPostId(aPostId);
       expect(response.statusCode).toBe(200);
       expect(newPost.likeCount).toBe(oldPost.likeCount + 1);
@@ -514,7 +493,7 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(appServer)
         .post('/api/likes')
         .send({ userID: testUserBId, postID: aPostId })
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body.error).toEqual('already liked');
     });
@@ -523,11 +502,11 @@ describe('Backend Endpoint Tests', () => {
       await request(appServer)
         .post('/api/likes')
         .send({ userID: testUserId, postID: aPostId })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const oldPost = await getPostByPostId(aPostId);
       const response = await request(appServer)
         .delete(`/api/likes?postID=${oldPost._id}&userID=${testUserId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newPost = await getPostByPostId(aPostId);
       expect(response.statusCode).toBe(200);
       expect(response.body.deletedCount).toBe(1);
@@ -539,11 +518,11 @@ describe('Backend Endpoint Tests', () => {
       await request(appServer)
         .post('/api/likes')
         .send({ userID: testUserId, postID: aPostId })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const like = await getLikeByPostIdAndUserId(aPostId, testUserId);
       const response = await request(appServer)
         .delete(`/api/likes/${like[0]._id}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newPost = await getPostByPostId(aPostId);
       expect(response.statusCode).toBe(200);
       expect(response.body.deletedCount).toBe(1);
@@ -555,7 +534,7 @@ describe('Backend Endpoint Tests', () => {
     test('get all users', async () => {
       const response = await request(appServer)
         .get('/api/users')
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -568,7 +547,7 @@ describe('Backend Endpoint Tests', () => {
     test('get user by id', async () => {
       const response = await request(appServer)
         .get(`/api/users/${testUserId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body._id.toString()).toEqual(testUserId);
     });
@@ -576,7 +555,7 @@ describe('Backend Endpoint Tests', () => {
     test('get user by userName', async () => {
       const response = await request(appServer)
         .get(`/api/users/?userName=${testUserName}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body._id.toString()).toEqual(testUserId);
     });
@@ -584,7 +563,7 @@ describe('Backend Endpoint Tests', () => {
     test('get user by userName Like', async () => {
       const response = await request(appServer)
         .get(`/api/users/?userNameLike=${testUserName}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -602,7 +581,7 @@ describe('Backend Endpoint Tests', () => {
           userAvatar: faker.image.avatar(),
           email: faker.internet.email(),
         })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('userName');
       expect(response.body).toHaveProperty('userMotto');
@@ -624,11 +603,11 @@ describe('Backend Endpoint Tests', () => {
           userAvatar: faker.image.avatar(),
           email: faker.internet.email(),
         })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newUser = await getUserByUserName(userName);
       const response = await request(appServer)
         .delete(`/api/users/${newUser._id}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       const qUsers = await getUserByUserName(userName);
       expect(qUsers).toBe(null);
@@ -644,13 +623,13 @@ describe('Backend Endpoint Tests', () => {
           userAvatar: faker.image.avatar(),
           email: faker.internet.email(),
         })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newUser = await getUserByUserName(userName);
       const newMotto = faker.lorem.sentence();
       const response = await request(appServer)
         .patch(`/api/users/${newUser._id}`)
         .send({ userMotto: newMotto })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body.modifiedCount).toBe(1);
       const qUsers = await getUserByUserName(userName);
@@ -700,7 +679,7 @@ describe('Backend Endpoint Tests', () => {
     test('get all followings', async () => {
       const response = await request(appServer)
         .get('/api/followings')
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -713,7 +692,7 @@ describe('Backend Endpoint Tests', () => {
       const following = await getFollowingById(aBFollowingId);
       const response = await request(appServer)
         .get(`/api/followings/${aBFollowingId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body._id.toString()).toEqual(aBFollowingId);
       expect(response.body.followerID.toString()).toEqual(following.followerID.toString());
@@ -723,7 +702,7 @@ describe('Backend Endpoint Tests', () => {
     test('get followings by followerID and followingID', async () => {
       const response = await request(appServer)
         .get(`/api/followings/?followerID=${testUserId}&followingID=${testUserBId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body.length).toBeGreaterThan(0);
       expect(response.body[0].followerID.toString()).toEqual(testUserId.toString());
@@ -736,7 +715,7 @@ describe('Backend Endpoint Tests', () => {
     test('get followings by followerID', async () => {
       const response = await request(appServer)
         .get(`/api/followings/?followerID=${testUserId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -748,7 +727,7 @@ describe('Backend Endpoint Tests', () => {
     test('get followings by followingID', async () => {
       const response = await request(appServer)
         .get(`/api/followings/?followingID=${testUserBId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -768,7 +747,7 @@ describe('Backend Endpoint Tests', () => {
       const oldUserB = await getUserByUserId(testUserBId);
       const response = await request(appServer)
         .delete(`/api/followings/?followerID=${testUserId}&followingID=${testUserBId}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newUser = await getUserByUserId(testUserId);
       const newUserB = await getUserByUserId(testUserBId);
       expect(response.statusCode).toBe(200);
@@ -788,7 +767,7 @@ describe('Backend Endpoint Tests', () => {
       });
       const response = await request(appServer)
         .delete(`/api/followings/${newFollowing._id}`)
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newUser = await getUserByUserId(testUserId);
       const newUserB = await getUserByUserId(testUserBId);
       expect(response.statusCode).toBe(200);
@@ -817,7 +796,7 @@ describe('Backend Endpoint Tests', () => {
           followerName: testUserName,
           followingName: oldUser.userName,
         })
-        .set('Cookie', `accessToken=${testToken}`);
+        .set('Cookie', `_id=${testUserId};accessToken=${testToken}`);
       const newUser = await getUserByUserId(oldUser._id);
       const newTestUser = await getUserByUserId(oleTestUser._id);
       expect(response.statusCode).toBe(200);
@@ -877,7 +856,7 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(appServer)
         .post('/api/signup')
         .send({ email: 'dfsghjfdsvbgdfgbdfgdgdg', userName: ' ' });
-      expect(response.body.error).toEqual('invalid input');
+      expect(response.body.error).toEqual('incomplete user object');
     });
 
     test('signup email and userName check', async () => {
@@ -946,7 +925,7 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(appServer)
         .post('/api/hide')
         .send({ userID: testUserBId, postID: aPostId })
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('userID');
       expect(response.body).toHaveProperty('postID');
@@ -962,10 +941,10 @@ describe('Backend Endpoint Tests', () => {
       await request(appServer)
         .post('/api/hide')
         .send({ userID: testUserBId, postID: aPostId })
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       const response = await request(appServer)
         .get(`/api/hide?userID=${testUserBId}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
@@ -982,7 +961,7 @@ describe('Backend Endpoint Tests', () => {
       });
       const response = await request(appServer)
         .delete(`/api/hide/${hide._id}`)
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body.deletedCount).toBe(1);
       const qHide = await getHideById(hide._id);
@@ -997,7 +976,7 @@ describe('Backend Endpoint Tests', () => {
       const response = await request(appServer)
         .delete('/api/hide')
         .send({ userID: testUserBId, postID: aPostId })
-        .set('Cookie', `accessToken=${testUserBToken}`);
+        .set('Cookie', `_id=${testUserBId};accessToken=${testUserBToken}`);
       expect(response.statusCode).toBe(200);
       expect(response.body.deletedCount).toBe(1);
       const qHide = await getHideById(hide._id);

@@ -2,9 +2,13 @@ const express = require('express');
 const { methodLogging, logger } = require('../utils/logger');
 const followingOperations = require('../dbUtils/following/followingOperations');
 const { getUserByUserId } = require('../dbUtils/user/userOperations');
+const {
+	queryValidator, paramValidator, followingBodyValidator,
+	deleteQueryValidator, deleteParamValidator,
+} = require('../utils/paramValidator');
 
 const followingRouter = express.Router();
-followingRouter.get('/', async (req, res) => {
+followingRouter.get('/', queryValidator, async (req, res) => {
 	methodLogging('GET', req);
 	try {
 		const followerid = req.query.followerID;
@@ -30,7 +34,7 @@ followingRouter.get('/', async (req, res) => {
 	}
 });
 
-followingRouter.get('/:id', async (req, res) => {
+followingRouter.get('/:id', paramValidator, async (req, res) => {
 	methodLogging('GET', req);
 	try {
 		const responseData = await followingOperations.getFollowingById(req.params.id);
@@ -41,7 +45,7 @@ followingRouter.get('/:id', async (req, res) => {
 	}
 });
 
-followingRouter.post('/', async (req, res) => {
+followingRouter.post('/', followingBodyValidator, async (req, res) => {
 	methodLogging('POST', req);
 	try {
 		const following = req.body;
@@ -66,7 +70,7 @@ followingRouter.post('/', async (req, res) => {
 	}
 });
 
-followingRouter.delete('/', async (req, res) => {
+followingRouter.delete('/', queryValidator, deleteQueryValidator, async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
 		const followerid = req.query.followerID;
@@ -83,7 +87,7 @@ followingRouter.delete('/', async (req, res) => {
 	}
 });
 
-followingRouter.delete('/:id', async (req, res) => {
+followingRouter.delete('/:id', paramValidator, deleteParamValidator, async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
 		const followingId = req.params.id;
