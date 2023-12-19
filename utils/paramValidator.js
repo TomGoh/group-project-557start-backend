@@ -176,6 +176,21 @@ async function hideBodyValidator(req, resp, next) {
   return next();
 }
 
+async function hideParamValidator(req, resp, next) {
+  const userID = req.query.userID;
+  const postID = req.query.postID;
+  if (!userID || !postID) {
+    return resp.status(400).json({ error: 'incomplete hide object' });
+  }
+  if (!mongoose.Types.ObjectId.isValid(userID)) {
+    return resp.status(400).json({ error: 'invalid userID' });
+  }
+  if (!mongoose.Types.ObjectId.isValid(postID)) {
+    return resp.status(400).json({ error: 'invalid postID' });
+  }
+  return next();
+}
+
 async function loginBodyValidator(req, resp, next) {
   const user = req.body;
   if (!user) {
