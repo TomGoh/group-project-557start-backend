@@ -3,7 +3,7 @@ const { methodLogging } = require('../utils/logger');
 const hideOperations = require('../dbUtils/hide/hideOperations');
 const postOperations = require('../dbUtils/post/postOperations');
 const {
-  queryValidator, hideBodyValidator, paramValidator, deleteParamValidator,
+  queryValidator, hideBodyValidator, paramValidator, deleteParamValidator, hideParamValidator,
 } = require('../utils/paramValidator');
 
 const hideRouter = express.Router();
@@ -49,10 +49,9 @@ hideRouter.post('/', hideBodyValidator, async (req, res) => {
   return res.json(response);
 });
 
-hideRouter.delete('/', hideBodyValidator, async (req, res) => {
+hideRouter.delete('/', hideParamValidator, deleteParamValidator, async (req, res) => {
   methodLogging('DELETE', req);
-  const userID = req.query.userID;
-  const postID = req.query.postID;
+  const { userID, postID } = req.query;
   if (!userID || !postID) {
     return res.json({ error: 'Missing userID or postID parameter' });
   }
