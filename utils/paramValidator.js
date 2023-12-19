@@ -177,7 +177,7 @@ async function hideBodyValidator(req, resp, next) {
 }
 
 async function hideParamValidator(req, resp, next) {
-  const { userID, postID } = req.query;
+  const { userID, postID } = req.params;
   if (!userID || !postID) {
     return resp.status(400).json({ error: 'incomplete hide object' });
   }
