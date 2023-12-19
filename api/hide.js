@@ -51,7 +51,8 @@ hideRouter.post('/', hideBodyValidator, async (req, res) => {
 
 hideRouter.delete('/', hideBodyValidator, async (req, res) => {
   methodLogging('DELETE', req);
-  const { userID, postID } = req.body;
+  const userId = req.query.userID;
+  const postId = req.query.postID;
   if (!userID || !postID) {
     return res.json({ error: 'Missing userID or postID parameter' });
   }
