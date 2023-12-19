@@ -6,8 +6,9 @@ const { methodLogging, logger } = require('../utils/logger');
 const { verifyPassword } = require('../utils/userVerify');
 const { tokenManager } = require('../utils/tokenManager');
 const { getUserByEmail } = require('../dbUtils/user/userOperations');
+const { loginBodyValidator } = require('../utils/paramValidator');
 
-loginRouter.post('/', async (req, res) => {
+loginRouter.post('/', loginBodyValidator, async (req, res) => {
   methodLogging('POST', req);
   try {
     const { email } = req.body;
@@ -25,6 +26,11 @@ loginRouter.post('/', async (req, res) => {
       const token = tokenManager.generateToken(profile);
       res.cookie('accessToken', token, {
         sameSite: 'Lax',
+        httpOnly: true,
+      });
+      res.cookie('_id', profile._id.toString(), {
+        sameSite: 'Lax',
+        httpOnly: true,
       });
       return res.json({ ...profile._doc, accessToken: token });
     }

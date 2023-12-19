@@ -21,7 +21,6 @@ const corsOptions = {
 	methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 };
 const app = express();
-const port = 8888;
 app.use(cors(corsOptions));
 app.use(urlencoded({
 	extended: false,
@@ -42,8 +41,4 @@ app.use('/api/blob', blobRouter);
 app.use('/api/logout', logoutRouter);
 app.use('/api/hide', hideRouter);
 
-const appServer = app.listen(port, () => {
-	process.stdout.write(`Server listening at http://localhost:${port}\n`);
-});
-
-module.exports = appServer;
+module.exports = app;

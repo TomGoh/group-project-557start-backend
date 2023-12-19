@@ -1,6 +1,7 @@
 const express = require('express');
 const userOperations = require('../dbUtils/user/userOperations');
 const { methodLogging, logger } = require('../utils/logger');
+const { deleteParamValidator } = require('../utils/paramValidator');
 
 const userRouter = express.Router();
 
@@ -39,7 +40,7 @@ userRouter.post('/', async (req, res) => {
 	}
 });
 
-userRouter.delete('/:id', async (req, res) => {
+userRouter.delete('/:id', deleteParamValidator, async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
 		const result = await userOperations.deleteOneUserById(req.params.id);
@@ -50,7 +51,7 @@ userRouter.delete('/:id', async (req, res) => {
 	}
 });
 
-userRouter.patch('/:id', async (req, res) => {
+userRouter.patch('/:id', deleteParamValidator, async (req, res) => {
 	methodLogging('PATCH', req);
 	try {
 		const userId = req.params.id;

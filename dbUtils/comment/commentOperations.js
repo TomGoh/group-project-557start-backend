@@ -69,11 +69,11 @@ async function createOneComment(comment) {
   await deleteCache(`post:${comment.postID}`);
   const post = await dbFunctions.getOneObjectById('post', comment.postID);
   if (post === null) {
-    return "post doesn't exist";
+    throw new Error("post doesn't exist");
   }
   const user = await dbFunctions.getOneObjectById('user', comment.userID);
   if (user === null) {
-    return "user doesn't exist";
+   throw new Error("user doesn't exist");
   }
   await deleteCache(`comment:${comment.userID}`);
   await deleteCache(`post:${post.userID}`);
@@ -82,7 +82,7 @@ async function createOneComment(comment) {
   if (commentCreation && commentCountResult) {
     return commentCreation;
   }
-  return 'comment creation failed';
+  throw new Error('comment creation failed');
 }
 
 /**
@@ -105,7 +105,7 @@ async function deleteOneCommentById(commentId) {
       return commentRemoval;
     }
   }
-  return "comment doesn't exist";
+  throw new Error('comment does not exist');
 }
 
 /**
@@ -126,7 +126,7 @@ async function deleteOneCommentByPostIdAndUserId(postId, userId) {
   if (commentRemoval && commentCountResult) {
     return commentRemoval;
   }
-  return "comment doesn't exist";
+  throw new Error('comment does not exist');
 }
 
 module.exports = {

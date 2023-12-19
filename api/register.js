@@ -5,19 +5,20 @@ const generalOperations = require('../dbUtils/generalOperations');
 const userOperations = require('../dbUtils/user/userOperations');
 const { methodLogging, logger } = require('../utils/logger');
 const { encryptPassword } = require('../utils/userVerify');
+const { registerBodyValidator } = require('../utils/paramValidator');
 
-registerRouter.post('/', async (req, res) => {
+registerRouter.post('/', registerBodyValidator, async (req, res) => {
   methodLogging('POST', req);
   try {
     const { email } = req.body;
     const { password } = req.body;
-    const username = req.body.userName;
-    if (!email || !password || !username) {
+    const { userName } = req.body;
+    if (!email || !password || !userName) {
       return res.json({ error: 'invalid input' });
     }
     const enPassword = await encryptPassword(password);
     const registerResult = await generalOperations.userSignUp(email, enPassword);
-    const userCreationResult = await userOperations.createOneUser({ email, userName: username });
+    const userCreationResult = await userOperations.createOneUser({ email, userName });
     if (registerResult && userCreationResult) {
       return res.json({ success: 'user created' });
     }

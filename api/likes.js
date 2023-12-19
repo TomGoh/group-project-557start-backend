@@ -2,10 +2,11 @@ const express = require('express');
 const likeOperations = require('../dbUtils/like/likeOperations');
 const { methodLogging, logger } = require('../utils/logger');
 const { getUserByUserId } = require('../dbUtils/user/userOperations');
+const { paramValidator, queryValidator, likeBodyValidator } = require('../utils/paramValidator');
 
 const likeRouter = express.Router();
 
-likeRouter.get('/', async (req, res) => {
+likeRouter.get('/', queryValidator, async (req, res) => {
 	methodLogging('GET', req);
 	try {
 		const userid = req.query.userID;
@@ -30,7 +31,7 @@ likeRouter.get('/', async (req, res) => {
 	}
 });
 
-likeRouter.get('/:id', async (req, res) => {
+likeRouter.get('/:id', paramValidator, async (req, res) => {
 	methodLogging('GET', req);
 	try {
 		const responseData = await likeOperations.getLikeById(req.params.id);
@@ -41,7 +42,7 @@ likeRouter.get('/:id', async (req, res) => {
 	}
 });
 
-likeRouter.delete('/:id', async (req, res) => {
+likeRouter.delete('/:id', paramValidator, async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
 		const result = await likeOperations.deleteOneLikeById(req.params.id);
@@ -51,7 +52,7 @@ likeRouter.delete('/:id', async (req, res) => {
 	}
 });
 
-likeRouter.delete('/', async (req, res) => {
+likeRouter.delete('/', queryValidator, async (req, res) => {
 	methodLogging('DELETE', req);
 	try {
 		const userid = req.query.userID;
@@ -66,7 +67,7 @@ likeRouter.delete('/', async (req, res) => {
 	}
 });
 
-likeRouter.post('/', async (req, res) => {
+likeRouter.post('/', likeBodyValidator, async (req, res) => {
 	methodLogging('POST', req);
 	try {
 		const like = req.body;

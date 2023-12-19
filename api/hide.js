@@ -2,10 +2,13 @@ const express = require('express');
 const { methodLogging } = require('../utils/logger');
 const hideOperations = require('../dbUtils/hide/hideOperations');
 const postOperations = require('../dbUtils/post/postOperations');
+const {
+  queryValidator, hideBodyValidator, paramValidator, deleteParamValidator,
+} = require('../utils/paramValidator');
 
 const hideRouter = express.Router();
 
-hideRouter.get('/', async (req, res) => {
+hideRouter.get('/', queryValidator, async (req, res) => {
   methodLogging('GET', req);
   const userId = req.query.userID;
   const postId = req.query.postID;
@@ -27,7 +30,7 @@ hideRouter.get('/', async (req, res) => {
     return res.json({ error: 'Missing userID parameter' });
 });
 
-hideRouter.post('/', async (req, res) => {
+hideRouter.post('/', hideBodyValidator, async (req, res) => {
   methodLogging('POST', req);
   const { userID, postID } = req.body;
   if (!userID || !postID) {
@@ -46,17 +49,27 @@ hideRouter.post('/', async (req, res) => {
   return res.json(response);
 });
 
-hideRouter.delete('/', async (req, res) => {
+hideRouter.delete('/', hideBodyValidator, async (req, res) => {
   methodLogging('DELETE', req);
   const { userID, postID } = req.body;
   if (!userID || !postID) {
     return res.json({ error: 'Missing userID or postID parameter' });
   }
+  const cookies = req.headers.cookie;
+  let currentUserID;
+  cookies.split(';').forEach((element) => {
+    if (element.includes('_id')) {
+      [, currentUserID] = element.split('=');
+    }
+  });
+  if (currentUserID !== userID) {
+    return res.json({ error: 'Cannot delete hide relationship for other users' });
+  }
   const response = await hideOperations.deleteOneHideByUserIdAndPostId(userID, postID);
   return res.json(response);
 });
 
-hideRouter.delete('/:id', async (req, res) => {
+hideRouter.delete('/:id', paramValidator, deleteParamValidator, async (req, res) => {
   methodLogging('DELETE', req);
   const response = await hideOperations.deleteOneHideById(req.params.id);
   return res.json(response);

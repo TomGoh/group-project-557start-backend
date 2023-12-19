@@ -5,7 +5,7 @@ dotenv.config();
 
 const { methodLogging, logger } = require('./logger');
 
-const pathException = ['/api/login', '/api/signup', '/api/logout'];
+const pathException = ['/api/login', '/api/signup', '/api/logout', '/api/login/', '/api/signup/', '/api/logout/'];
 
 /**
  * Middleware to check for valid token
@@ -21,7 +21,12 @@ async function tokenAuthenticator(req, res, next) {
 	}
 	if (req.headers.cookie) {
 		const { cookie } = req.headers;
-		const accessToken = cookie.split('=')[1];
+		let accessToken;
+		cookie.split(';').forEach((element) => {
+			if (element.includes('accessToken')) {
+				[, accessToken] = element.split('=');
+			}
+		});
 		if (!accessToken) {
 			logger.error('missing token');
 			return res.status(401).json({ error: 'missing token' });
