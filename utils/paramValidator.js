@@ -176,8 +176,9 @@ async function hideBodyValidator(req, resp, next) {
   return next();
 }
 
-async function hideParamValidator(req, resp, next) {
-  const { userID, postID } = req.params;
+async function hideQueryValidator(req, resp, next) {
+  console.log(req.query);
+  const { userID, postID } = req.query;
   if (!userID || !postID) {
     return resp.status(400).json({ error: 'incomplete hide object' });
   }
@@ -269,7 +270,7 @@ module.exports = {
   userBodyValidator,
   registerBodyValidator,
   hideBodyValidator,
-  hideParamValidator,
+  hideQueryValidator,
   loginBodyValidator,
   deleteQueryValidator,
   deleteParamValidator,

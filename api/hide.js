@@ -3,7 +3,7 @@ const { methodLogging } = require('../utils/logger');
 const hideOperations = require('../dbUtils/hide/hideOperations');
 const postOperations = require('../dbUtils/post/postOperations');
 const {
-  queryValidator, hideBodyValidator, paramValidator, deleteParamValidator, hideParamValidator,
+  queryValidator, hideBodyValidator, paramValidator, deleteParamValidator, hideQueryValidator,
 } = require('../utils/paramValidator');
 
 const hideRouter = express.Router();
@@ -49,7 +49,7 @@ hideRouter.post('/', hideBodyValidator, async (req, res) => {
   return res.json(response);
 });
 
-hideRouter.delete('/', hideParamValidator, deleteParamValidator, async (req, res) => {
+hideRouter.delete('/', hideQueryValidator, deleteParamValidator, async (req, res) => {
   methodLogging('DELETE', req);
   const { userID, postID } = req.query;
   if (!userID || !postID) {
