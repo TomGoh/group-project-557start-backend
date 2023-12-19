@@ -176,21 +176,6 @@ async function hideBodyValidator(req, resp, next) {
   return next();
 }
 
-async function hideQueryValidator(req, resp, next) {
-  console.log(req.query);
-  const { userID, postID } = req.query;
-  if (!userID || !postID) {
-    return resp.status(400).json({ error: 'incomplete hide object' });
-  }
-  if (!mongoose.Types.ObjectId.isValid(userID)) {
-    return resp.status(400).json({ error: 'invalid userID' });
-  }
-  if (!mongoose.Types.ObjectId.isValid(postID)) {
-    return resp.status(400).json({ error: 'invalid postID' });
-  }
-  return next();
-}
-
 async function loginBodyValidator(req, resp, next) {
   const user = req.body;
   if (!user) {
@@ -270,7 +255,6 @@ module.exports = {
   userBodyValidator,
   registerBodyValidator,
   hideBodyValidator,
-  hideQueryValidator,
   loginBodyValidator,
   deleteQueryValidator,
   deleteParamValidator,
